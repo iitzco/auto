@@ -52,6 +52,14 @@ class Environment(object):
         agent = self.create_random_agent()
         self.processor.add_agent(agent)
 
+    def add_multiple_agents(self):
+        for i in range(self.get_multiple_amount()):
+            agent = self.create_random_agent()
+            self.processor.add_agent(agent)
+
+    def delete_agent(self, agent):
+        self.processor.remove_agent(agent)
+
 
 class City(Environment):
 
@@ -82,8 +90,8 @@ class City(Environment):
             self.roads.append(road)
             self.vertical_roads[i] = road
 
-    def delete_agent(self, agent):
-        self.processor.agents.remove(agent)
+    def get_multiple_amount(self):
+        return int(self.vertical_roads_count + self.horizontal_roads_count)
 
     def create_random_agent(self):
         length = random.randint(constants.MIN_TRAVEL_LENGTH, constants.MAX_TRAVEL_LENGTH)
@@ -98,7 +106,7 @@ class City(Environment):
             length-=1
         end = self.get_possible_end(route[-1], curr.number)
         route = Route(route, start, end)
-        return Car(self, route, 10, 0)
+        return Car(self, route, random.uniform(constants.MIN_CRUISE_SPEED, constants.MAX_CRUISE_SPEED), 0)
 
     def get_possible_end(self, road, number):
         if road.direction == Direction.WE:

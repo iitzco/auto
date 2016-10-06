@@ -1,6 +1,8 @@
 import tkinter as tk
 import constants
 
+import random
+
 class ConsoleGUI():
     def __init__(self):
         super(ConsoleGUI, self).__init__()
@@ -30,8 +32,10 @@ class TkinterGUI():
     def start(self):
         self.frame.draw_city()
 
-    def add_car(self):
-        self.processor.add_car()
+    def remove_agent(self, agent):
+        spot = self.cars_map.get(agent.id)
+        if spot:
+            self.frame.delete_agent(spot)
 
 class MainFrame(tk.Frame):
 
@@ -54,8 +58,11 @@ class MainFrame(tk.Frame):
         self.label = tk.Label(self.menu_frame, text='Menu')
         self.label.pack(side=tk.TOP)
 
-        self.button = tk.Button(self.menu_frame, text='Add Car', command=self.city.add_random_agent)
-        self.button.pack()
+        self.add_button = tk.Button(self.menu_frame, text='Add Car', command=self.city.add_random_agent)
+        self.add_button.pack()
+
+        self.add_boost_button = tk.Button(self.menu_frame, text='Add {} Cars'.format(int(self.city.vertical_roads_count+self.city.horizontal_roads_count)), command=self.city.add_multiple_agents)
+        self.add_boost_button.pack()
 
     def init_main_frame(self):
         self.master.title("GUI")
@@ -95,7 +102,13 @@ class MainFrame(tk.Frame):
     def update_car(self, car, cars_map):
         spot = cars_map.get(car.id)
         if spot:
-            self.canvas.delete(spot)
+            color = spot[1]
+            self.canvas.delete(spot[0])
+        else:
+            color = random.choice(["red", "green", "blue", "cyan", "yellow", "magenta"])
         pos = self.get_drawing_position(car)
-        cars_map[car.id] = self.canvas.create_oval(pos[0]-constants.CAR_RADIUS, pos[1]-constants.CAR_RADIUS, pos[0]+constants.CAR_RADIUS, pos[1]+constants.CAR_RADIUS, fill="red")
+        id_ = self.canvas.create_oval(pos[0]-constants.CAR_RADIUS, pos[1]-constants.CAR_RADIUS, pos[0]+constants.CAR_RADIUS, pos[1]+constants.CAR_RADIUS, fill=color)
+        cars_map[car.id] = (id_, color)
 
+    def delete_agent(self, spot):
+        self.canvas.delete(spot[0])

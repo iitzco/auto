@@ -20,6 +20,10 @@ class Processor(object):
     def add_agent(self, agent):
         self.agents.append(agent)
 
+    def remove_agent(self, agent):
+        self.agents.remove(agent)
+        self.gui.remove_agent(agent)
+
     def run(self):
         while True:
             now = time.time()

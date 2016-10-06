@@ -1,7 +1,7 @@
 from utils import Direction, is_horizontal
 import time
 
-ERROR = 0.5
+ERROR = 1
 
 class Agent(object):
 
@@ -65,10 +65,13 @@ class Car(Agent):
             self.x -= self.max_speed*delta_t
         if direction == Direction.WE:
             self.x += self.max_speed*delta_t
-        if self.x<0:
-            import pdb; pdb.set_trace()
         if self.should_turn():
             self.route.index+=1
+        if self.out_of_city():
+            self.city.delete_agent(self)
+
+    def out_of_city(self):
+        return self.x<0 or self.x>self.city.width or self.y<0 or self.y>self.city.height
 
     def arrived(self):
         if is_horizontal(self.route.roads[-1].direction):
