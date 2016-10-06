@@ -1,7 +1,6 @@
 from agents import Car
 from utils import Direction
 
-ROAD_WIDTH = 5
 
 class Block(object):
 
@@ -32,9 +31,22 @@ class Route(object):
         self.index = 0
 
 
-class City(object):
+class Environment(object):
+    def __init__(self):
+        pass
+
+    def set_processor(self, processor):
+        self.processor = processor
+
+    def add_agent(self):
+        agent = self.create_agent()
+        self.processor.add_agent(agent)
+
+
+class City(Environment):
 
     def __init__(self, name, height, width, horizontal_roads_count, vertical_roads_count):
+        super().__init__()
         self.name = name
         self.height = height
         self.width = width
@@ -62,4 +74,9 @@ class City(object):
             road = Road(i, Direction.NS if i%2 else Direction.SN, self.height, self.horizontal_roads_count-1)
             self.roads.append(road)
             self.vertical_roads[i] = road
+
+    def create_agent(self):
+        road = self.horizontal_roads[0] 
+        route = Route([road], 10, 40)
+        return Car(self, route, 10, 0)
 

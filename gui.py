@@ -1,8 +1,5 @@
 import tkinter as tk
-
-MARGIN = 0.2
-ROAD_WIDTH = 20
-CAR_RADIUS = 5
+import constants
 
 class ConsoleGUI():
     def __init__(self):
@@ -38,9 +35,9 @@ class TkinterGUI():
 
 class MainFrame(tk.Frame):
 
-    def __init__(self, city, manager):
+    def __init__(self, environment, manager):
         tk.Frame.__init__(self)
-        self.city=city
+        self.city=environment
         self.manager = manager
 
         self.init_main_frame()
@@ -57,7 +54,7 @@ class MainFrame(tk.Frame):
         self.label = tk.Label(self.menu_frame, text='Menu')
         self.label.pack(side=tk.TOP)
 
-        self.button = tk.Button(self.menu_frame, text='Add Car', command=self.manager.add_car)
+        self.button = tk.Button(self.menu_frame, text='Add Car', command=self.city.add_agent)
         self.button.pack()
 
     def init_main_frame(self):
@@ -72,22 +69,22 @@ class MainFrame(tk.Frame):
         self.w = self.canvas.winfo_width()
         self.h = self.canvas.winfo_height()
 
-        self.margin_w = self.w*MARGIN/2
-        self.margin_h = self.h*MARGIN/2
+        self.margin_w = self.w*constants.MARGIN/2
+        self.margin_h = self.h*constants.MARGIN/2
 
-        self.w *= (1-MARGIN)
-        self.h *= (1-MARGIN)
+        self.w *= (1-constants.MARGIN)
+        self.h *= (1-constants.MARGIN)
 
         self.rel_x = self.w/self.city.width
         self.rel_y = self.h/self.city.height
 
         for i in range(self.city.horizontal_roads_count):
             pos = (i*self.city.block_height_size*self.rel_y) + self.margin_h
-            self.canvas.create_rectangle(self.margin_w, pos-ROAD_WIDTH/2, self.w+self.margin_w, pos+ROAD_WIDTH/2, fill="gray", outline='grey')
+            self.canvas.create_rectangle(self.margin_w, pos-constants.ROAD_WIDTH/2, self.w+self.margin_w, pos+constants.ROAD_WIDTH/2, fill="gray", outline='grey')
 
         for i in range(self.city.vertical_roads_count):
             pos = (i*self.city.block_width_size*self.rel_x) + self.margin_w
-            self.canvas.create_rectangle(pos-ROAD_WIDTH/2, self.margin_h, pos+ROAD_WIDTH/2, self.h+self.margin_h, fill="gray", outline='grey')
+            self.canvas.create_rectangle(pos-constants.ROAD_WIDTH/2, self.margin_h, pos+constants.ROAD_WIDTH/2, self.h+self.margin_h, fill="gray", outline='grey')
 
 
     def get_drawing_position(self, car):
@@ -100,5 +97,5 @@ class MainFrame(tk.Frame):
         if spot:
             self.canvas.delete(spot)
         pos = self.get_drawing_position(car)
-        cars_map[car.id] = self.canvas.create_oval(pos[0]-CAR_RADIUS, pos[1]-CAR_RADIUS, pos[0]+CAR_RADIUS, pos[1]+CAR_RADIUS, fill="red")
+        cars_map[car.id] = self.canvas.create_oval(pos[0]-constants.CAR_RADIUS, pos[1]-constants.CAR_RADIUS, pos[0]+constants.CAR_RADIUS, pos[1]+constants.CAR_RADIUS, fill="red")
 
