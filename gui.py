@@ -54,7 +54,7 @@ class MainFrame(tk.Frame):
         self.label = tk.Label(self.menu_frame, text='Menu')
         self.label.pack(side=tk.TOP)
 
-        self.button = tk.Button(self.menu_frame, text='Add Car', command=self.city.add_agent)
+        self.button = tk.Button(self.menu_frame, text='Add Car', command=self.city.add_random_agent)
         self.button.pack()
 
     def init_main_frame(self):

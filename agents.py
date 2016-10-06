@@ -29,21 +29,21 @@ class Car(Agent):
         pass
 
     def set_position(self):
-        start_road = self.route.roads[0]
+        start_road = self.route.origin.road
         if start_road.direction == Direction.EW or start_road.direction == Direction.WE:
-            self.x = self.route.origin
+            self.x = self.route.origin.number
             self.y = start_road.number*self.city.block_height_size
         elif start_road.direction == Direction.NS or start_road.direction == Direction.SN:
-            self.y = self.route.origin
+            self.y = self.route.origin.number
             self.x = start_road.number*self.city.block_width_size
 
     def locate_car_in_block(self):
-        origin = self.route.origin
-        start_road = self.route.roads[0]
+        origin = self.route.origin.number
+        start_road = self.route.origin.road
         if start_road.direction == Direction.EW or start_road.direction == Direction.WE:
-            index = int(origin/self.city.width_distance)
+            index = int(origin/self.city.block_width_size)
         elif start_road.direction == Direction.NS or start_road.direction == Direction.SN:
-            index = int(origin/self.city.height_distance)
+            index = int(origin/self.city.block_height_size)
         start_road.blocks[index].cars.append(self)
 
     def process(self, delta_t):
