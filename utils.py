@@ -25,3 +25,5 @@ def show_city(city):
             aux_l = l if j%2 else [' ']*city.vertical_roads_count
             print(h_s.format(*aux_l))
 
+def is_horizontal(d):
+    return d == Direction.EW or d==Direction.WE

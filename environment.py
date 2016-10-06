@@ -1,5 +1,5 @@
 from agents import Car
-from utils import Direction
+from utils import Direction, is_horizontal
 
 import constants
 
@@ -63,9 +63,6 @@ class City(Environment):
         self.horizontal_roads_count = horizontal_roads_count
         self.vertical_roads_count = vertical_roads_count
 
-        # self.width_distance = width / self.horizontal_roads_count
-        # self.height_distance = height/ self.vertical_roads_count
-
         self.block_height_size = height/ (self.vertical_roads_count-1)
         self.block_width_size = width/ (self.horizontal_roads_count-1)
 
@@ -99,8 +96,19 @@ class City(Environment):
             curr = Place(next_road, number)
             route.append(curr.road)
             length-=1
-        route = Route(route, start, 40)
+        end = self.get_possible_end(route[-1], curr.number)
+        route = Route(route, start, end)
         return Car(self, route, 10, 0)
+
+    def get_possible_end(self, road, number):
+        if road.direction == Direction.WE:
+            return Place(road, random.randint(number, number+int(self.block_width_size)-1))
+        if road.direction == Direction.EW:
+            return Place(road, random.randint(number - int(self.block_width_size)-1, number))
+        if road.direction == Direction.NS:
+            return Place(road, random.randint(number, number+int(self.block_height_size)-1))
+        if road.direction == Direction.SN:
+            return Place(road, random.randint(number - int(self.block_height_size)-1, number))
 
     def get_random_place(self):
         if random.random()>0.5:
@@ -116,7 +124,6 @@ class City(Environment):
             return int(self.block_height_size*from_road.number)+1
         if to_road.direction == Direction.SN:
             return int(self.block_height_size*from_road.number)-1
-
 
     def get_possible_turns(self, place):
         if place.road.direction == Direction.WE:

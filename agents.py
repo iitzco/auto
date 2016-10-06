@@ -1,5 +1,7 @@
-from utils import Direction
+from utils import Direction, is_horizontal
 import time
+
+ERROR = 0.5
 
 class Agent(object):
 
@@ -51,11 +53,40 @@ class Car(Agent):
 	
     def update_position(self, delta_t):
         direction = self.route.roads[self.route.index].direction
+        if self.route.index == len(self.route.roads)-1:
+            if self.arrived():
+                self.city.delete_agent(self)
+                return
         if direction == Direction.NS:
-            self.y -= self.max_speed*delta_t
-        if direction == Direction.SN:
             self.y += self.max_speed*delta_t
+        if direction == Direction.SN:
+            self.y -= self.max_speed*delta_t
         if direction == Direction.EW:
             self.x -= self.max_speed*delta_t
         if direction == Direction.WE:
             self.x += self.max_speed*delta_t
+        if self.x<0:
+            import pdb; pdb.set_trace()
+        if self.should_turn():
+            self.route.index+=1
+
+    def arrived(self):
+        if is_horizontal(self.route.roads[-1].direction):
+            return abs(self.x - self.route.destiny.number)<ERROR
+        return abs(self.y - self.route.destiny.number) < ERROR
+
+    def should_turn(self):
+        if self.route.index == len(self.route.roads)-1:
+            return False
+
+        if is_horizontal(self.route.roads[self.route.index+1].direction):
+            if abs(self.y - self.route.roads[self.route.index+1].number*self.city.block_height_size)<ERROR:
+                return True
+            else:
+                return False
+        else:
+            if abs(self.x - self.route.roads[self.route.index+1].number*self.city.block_width_size)<ERROR:
+                return True
+            else:
+                return False
+
