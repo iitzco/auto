@@ -106,7 +106,7 @@ class City(Environment):
             length-=1
         end = self.get_possible_end(route[-1], curr.number)
         route = Route(route, start, end)
-        return Car(self, route, random.uniform(constants.MIN_CRUISE_SPEED, constants.MAX_CRUISE_SPEED), 0)
+        return Car(self, route, random.uniform(constants.MIN_CRUISE_SPEED, constants.MAX_CRUISE_SPEED), random.uniform(constants.MIN_ACCEL_SPEED, constants.MAX_ACCEL_SPEED))
 
     def get_possible_end(self, road, number):
         if road.direction == Direction.WE:
