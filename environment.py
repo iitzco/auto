@@ -18,7 +18,6 @@ class Block(object):
         self.road = road
         self.from_n = from_n
         self.to_n = to_n
-        self.cars = []
 
 
 class Road(object):
@@ -30,6 +29,7 @@ class Road(object):
         size_per_block = size/blocks_count;
         for i in range(blocks_count):
             self.blocks.append(Block(self, i*size_per_block, (i+1)*size_per_block))
+        self.cars = []
 
 
 class Route(object):
@@ -59,6 +59,9 @@ class Environment(object):
 
     def delete_agent(self, agent):
         self.processor.remove_agent(agent)
+
+    def get_all_agents(self):
+        return self.processor.agents
 
 
 class City(Environment):
