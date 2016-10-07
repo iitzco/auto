@@ -39,7 +39,7 @@ class Car(Agent):
         self.locate_car_in_block()
 
         self.state =  State.ACCELERATING
-
+        self.arrived = False
 
     @classmethod
     def withRandomRoute(cls):
@@ -72,8 +72,14 @@ class Car(Agent):
         if self.should_turn():
             self.change_speeds()
             self.route.index+=1
+        elif self.arrived:
+            if self.state == State.STOPPED:
+                self.city.delete_agent(self)
         else:
             self.analyze_travel_end()
+
+        if self.out_of_city():
+            self.city.delete_agent(self)
 	
     def update_position(self, delta_t):
 
@@ -93,7 +99,7 @@ class Car(Agent):
             if self.state == State.BREAKING and (abs(prev_speeds[0]-self.speed_x)>abs(prev_speeds[0]) or abs(prev_speeds[1]-self.speed_y)>abs(prev_speeds[1])):
                 self.speed_x = 0
                 self.speed_y = 0
-                self.state = state.STOPPED
+                self.state = State.STOPPED
 
     def change_speeds(self):
         curr = self.route.roads[self.route.index].direction
@@ -112,15 +118,15 @@ class Car(Agent):
 
     def analyze_travel_end(self):
         if self.route.index == len(self.route.roads)-1:
-            if self.arrived():
-                self.city.delete_agent(self)
-        elif self.out_of_city():
-            self.city.delete_agent(self)
+            if self.has_arrived():
+                self.arrived = True
+                self.acc_x, self.acc_y = -self.acc_x, -self.acc_y
+                self.state = State.BREAKING
 
     def out_of_city(self):
         return self.x<0 or self.x>self.city.width or self.y<0 or self.y>self.city.height
 
-    def arrived(self):
+    def has_arrived(self):
         if is_horizontal(self.route.roads[-1].direction):
             return abs(self.x - self.route.destiny.number)<ERROR
         return abs(self.y - self.route.destiny.number) < ERROR
