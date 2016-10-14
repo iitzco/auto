@@ -1,11 +1,11 @@
 from utils import Direction, is_horizontal, distance
-import time
+import constants
 
+import time
 from enum import Enum
 
-ERROR = 2
-DISTANCE_ACCEPTANCE = 20
-DISTANCE_FOR_RESPONSE = 20
+def signo(num):
+    return 1 if num>0 else (-1 if num<0 else 0)
 
 
 class State(Enum):
@@ -105,26 +105,56 @@ class Car(Agent):
         self.process_location(delta_t)
 
     def process_answers(self):
+        if not self.answers:
+            self.process_return()
+            return
+
         while self.answers:
             ans = self.answers.pop()
             if ans.m_type == MessageType.DISTANCE:
-                if ans.msg < DISTANCE_ACCEPTANCE:
-                    self.process_break()
+                if ans.msg[0] < constants.DISTANCE_ACCEPTANCE:
+                    self.process_break(ans.msg[0], ans.msg[1][0], ans.msg[1][1])
                 else:
                     self.process_return()
-        if self.state == State.STOPPED:
-            self.process_return()
+        # if self.state == State.STOPPED:
+        #     self.process_return()
 
-    def process_break(self):
+    def process_break(self, distance, other_speed_x, other_speed_y):
+        if self.state==State.STOPPED or self.no_need_breaking(other_speed_x, other_speed_y):
+            self.process_return()
+            return
+
+        if self.speed_x == 0 and self.speed_y == 0:
+            self.process_return()
+            return
+
+        t = self.get_safety_time(distance)
+        if is_horizontal(self.current_road().direction):
+            self.acc_x = (other_speed_x-self.speed_x)/t
+        else:
+            self.acc_y = (other_speed_y-self.speed_y)/t
+
         if self.state == State.CRUISING or self.state == State.ACCELERATING:
             self.state = State.BREAKING
-            self.acc_x, self.acc_y = -1*self.acc_x, -1*self.acc_y
-        elif self.state == State.BREAKING:
-            self.acc_x, self.acc_y = 2*self.acc_x, 2*self.acc_y
+
+    def no_need_breaking(self, other_speed_x, other_speed_y):
+        if is_horizontal(self.current_road().direction):
+            return abs(self.speed_x) < abs(other_speed_x)
+        else:
+            return abs(self.speed_y) < abs(other_speed_y)
+
+    def get_safety_time(self, d):
+        if is_horizontal(self.current_road().direction):
+            if self.speed_x == 0:
+                import pdb; pdb.set_trace()
+            return (d*0.8)/abs(self.speed_x)
+        else:
+            if self.speed_y == 0:
+                import pdb; pdb.set_trace()
+            return (d*0.8)/abs(self.speed_y)
 
     def process_return(self):
         if self.state == State.STOPPED or self.state == State.BREAKING:
-            self.acc_x, self.acc_y = -1*self.acc_x, -1*self.acc_y
             self.set_original_acc()
             self.state = State.ACCELERATING
 
@@ -141,7 +171,7 @@ class Car(Agent):
         while self.requests:
             req = self.requests.pop()
             if req.m_type == MessageType.DISTANCE and self.before(req.requester):
-                req.requester.answers.append(Response(MessageType.DISTANCE, distance(self.x, self.y, req.requester.x, req.requester.y)))
+                req.requester.answers.append(Response(MessageType.DISTANCE, [distance(self.x, self.y, req.requester.x, req.requester.y), (self.speed_x, self.speed_x)]))
 
     def before(self, other):
         if other.current_road() != self.current_road():
@@ -155,7 +185,7 @@ class Car(Agent):
         if self.current_road().direction == Direction.SN:
             distance = -(self.y - other.y)
 
-        if distance>0 and distance<DISTANCE_FOR_RESPONSE:
+        if distance>0 and distance<constants.DISTANCE_FOR_RESPONSE:
             return True
         return False
 
@@ -237,20 +267,20 @@ class Car(Agent):
 
     def has_arrived(self):
         if is_horizontal(self.route.roads[-1].direction):
-            return abs(self.x - self.route.destiny.number)<ERROR
-        return abs(self.y - self.route.destiny.number) < ERROR
+            return abs(self.x - self.route.destiny.number)<constants.ERROR
+        return abs(self.y - self.route.destiny.number) < constants.ERROR
 
     def should_turn(self):
         if self.route.index == len(self.route.roads)-1:
             return False
 
         if is_horizontal(self.route.roads[self.route.index+1].direction):
-            if abs(self.y - self.route.roads[self.route.index+1].number*self.city.block_height_size)<ERROR:
+            if abs(self.y - self.route.roads[self.route.index+1].number*self.city.block_height_size)<constants.ERROR:
                 return True
             else:
                 return False
         else:
-            if abs(self.x - self.route.roads[self.route.index+1].number*self.city.block_width_size)<ERROR:
+            if abs(self.x - self.route.roads[self.route.index+1].number*self.city.block_width_size)<constants.ERROR:
                 return True
             else:
                 return False

@@ -33,7 +33,7 @@ class Road(object):
 
     def get_block(self, position):
         index = int(position/self.size_per_block)
-        index = 0 if index<0 else (index-1 if index==len(self.blocks) else index)
+        index = 0 if index<0 else (index-1 if index>=len(self.blocks) else index)
         return self.blocks[index]
 
 
