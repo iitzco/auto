@@ -109,22 +109,22 @@ class Car(Agent):
             self.process_return()
             return
 
+        most_important_distance_msg = None
+
         while self.answers:
             ans = self.answers.pop()
             if ans.m_type == MessageType.DISTANCE:
                 if ans.msg[0] < constants.DISTANCE_ACCEPTANCE:
-                    self.process_break(ans.msg[0], ans.msg[1][0], ans.msg[1][1])
-                else:
-                    self.process_return()
-        # if self.state == State.STOPPED:
-        #     self.process_return()
+                    if (not most_important_distance_msg) or ans.msg[0] < most_important_distance_msg.msg[0]:
+                        most_important_distance_msg = ans
+
+        if most_important_distance_msg:
+            self.process_break(most_important_distance_msg.msg[0], most_important_distance_msg.msg[1][0], most_important_distance_msg.msg[1][1])
+        else:
+            self.process_return()
 
     def process_break(self, distance, other_speed_x, other_speed_y):
         if self.state==State.STOPPED or self.no_need_breaking(other_speed_x, other_speed_y):
-            self.process_return()
-            return
-
-        if self.speed_x == 0 and self.speed_y == 0:
             self.process_return()
             return
 
@@ -145,12 +145,8 @@ class Car(Agent):
 
     def get_safety_time(self, d):
         if is_horizontal(self.current_road().direction):
-            if self.speed_x == 0:
-                import pdb; pdb.set_trace()
             return (d*0.8)/abs(self.speed_x)
         else:
-            if self.speed_y == 0:
-                import pdb; pdb.set_trace()
             return (d*0.8)/abs(self.speed_y)
 
     def process_return(self):
