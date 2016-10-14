@@ -87,7 +87,7 @@ class MainFrame(tk.Frame):
 
         for i in range(self.city.horizontal_roads_count):
             pos = (i*self.city.block_height_size*self.rel_y) + self.margin_h
-            self.canvas.create_rectangle(self.margin_w, pos-constants.ROAD_WIDTH/2, self.w+self.margin_w, pos+constants.ROAD_WIDTH/2, fill="gray", outline='grey')
+            self.canvas.create_rectangle(self.margin_w-constants.ROAD_WIDTH/2, pos-constants.ROAD_WIDTH/2, self.w+self.margin_w+constants.ROAD_WIDTH/2, pos+constants.ROAD_WIDTH/2, fill="gray", outline='grey')
 
         for i in range(self.city.vertical_roads_count):
             pos = (i*self.city.block_width_size*self.rel_x) + self.margin_w
