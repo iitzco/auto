@@ -71,6 +71,8 @@ class Car(Agent):
         self.state =  State.ACCELERATING
         self.arrived = False
 
+        self.prev_x, self.prev_y = None, None
+
     def set_position(self):
         start_road = self.route.origin.road
         if start_road.direction == Direction.EW or start_road.direction == Direction.WE:
@@ -84,8 +86,14 @@ class Car(Agent):
             sign = 1 if start_road.direction == Direction.NS else -1
             self.acc_y, self.acc_x = sign*self.acceleration, 0
 
+    def get_block(self, x, y):
+        if is_horizontal(self.current_road().direction):
+            return self.current_road().get_block(x)
+        else:
+            return self.current_road().get_block(y)
+
     def locate_car(self):
-        self.current_road().cars.append(self)
+        self.get_block(self.x, self.y).cars.append(self)
 
     def current_road(self):
         return self.route.roads[self.route.index]
@@ -151,9 +159,8 @@ class Car(Agent):
             return True
         return False
 
-
     def make_requests(self):
-        for each in self.current_road().cars:
+        for each in self.get_block(self.x, self.y).cars:
             if not each == self:
                 each.requests.append(Request(self, MessageType.DISTANCE))
 
@@ -161,20 +168,30 @@ class Car(Agent):
         self.update_position(delta_t)
         if self.should_turn():
             self.change_speeds()
-            self.current_road().cars.remove(self)
+            self.get_block(self.prev_x, self.prev_y).cars.remove(self)
             self.route.index+=1
-            self.current_road().cars.append(self)
+            self.get_block(self.x, self.y).cars.append(self)
         elif self.arrived:
             if self.state == State.STOPPED:
                 self.city.delete_agent(self)
         else:
+            self.analyze_change_block()
             self.analyze_travel_end()
 
         if self.out_of_city():
             self.city.delete_agent(self)
 
+    def analyze_change_block(self):
+        prev_block = self.get_block(self.prev_x, self.prev_y)
+        curr_block = self.get_block(self.x, self.y)
+        if prev_block!=curr_block:
+            prev_block.cars.remove(self)
+            curr_block.cars.append(self)
 
     def update_position(self, delta_t):
+
+        self.prev_x, self.prev_y = self.x, self.y
+
         if self.state == State.CRUISING:
             self.y += self.speed_y*delta_t
             self.x += self.speed_x*delta_t

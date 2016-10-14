@@ -18,6 +18,7 @@ class Block(object):
         self.road = road
         self.from_n = from_n
         self.to_n = to_n
+        self.cars = []
 
 
 class Road(object):
@@ -26,10 +27,14 @@ class Road(object):
         self.number = number
         self.direction = direction
         self.blocks = []
-        size_per_block = size/blocks_count;
+        self.size_per_block = size/blocks_count;
         for i in range(blocks_count):
-            self.blocks.append(Block(self, i*size_per_block, (i+1)*size_per_block))
-        self.cars = []
+            self.blocks.append(Block(self, i*self.size_per_block, (i+1)*self.size_per_block))
+
+    def get_block(self, position):
+        index = int(position/self.size_per_block)
+        index = 0 if index<0 else (index-1 if index==len(self.blocks) else index)
+        return self.blocks[index]
 
 
 class Route(object):

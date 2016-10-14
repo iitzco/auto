@@ -50,7 +50,7 @@ class MainFrame(tk.Frame):
         self.menu_frame = tk.Frame(self)
 
         self.city_frame.pack(fill=tk.BOTH, expand=tk.YES, side=tk.LEFT)
-        self.menu_frame.pack(fill=tk.Y, expand=tk.YES, side=tk.RIGHT)
+        self.menu_frame.pack(fill=tk.BOTH, expand=tk.YES, side=tk.RIGHT)
 
         self.canvas = tk.Canvas(self.city_frame, bg='black')
         self.canvas.pack(fill=tk.BOTH, expand=tk.YES)
