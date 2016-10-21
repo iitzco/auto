@@ -1,4 +1,4 @@
-from utils import Direction, is_horizontal, distance
+from utils import Direction, is_horizontal, distance, manhattan_distance
 import constants
 
 import time
@@ -98,6 +98,9 @@ class Car(Agent):
     def current_road(self):
         return self.route.roads[self.route.index]
 
+    def next_road(self):
+        return self.route.roads[self.route.index+1] if self.route.index + 1 < len(self.route.roads) else None
+
     def process(self, delta_t):
         self.process_answers()
         self.process_requests()
@@ -119,29 +122,35 @@ class Car(Agent):
                         most_important_distance_msg = ans
 
         if most_important_distance_msg:
-            self.process_break(most_important_distance_msg.msg[0], most_important_distance_msg.msg[1][0], most_important_distance_msg.msg[1][1])
+            self.process_break(most_important_distance_msg.msg[0], most_important_distance_msg.msg[1])
         else:
             self.process_return()
 
-    def process_break(self, distance, other_speed_x, other_speed_y):
-        if self.state==State.STOPPED or self.no_need_breaking(other_speed_x, other_speed_y):
+    def process_break(self, distance, other):
+        if self.state==State.STOPPED or self.no_need_breaking(other):
             self.process_return()
             return
 
         t = self.get_safety_time(distance)
         if is_horizontal(self.current_road().direction):
-            self.acc_x = (other_speed_x-self.speed_x)/t
+            self.acc_x = (other.speed_x-self.speed_x)/t
         else:
-            self.acc_y = (other_speed_y-self.speed_y)/t
+            self.acc_y = (other.speed_y-self.speed_y)/t
 
         if self.state == State.CRUISING or self.state == State.ACCELERATING:
             self.state = State.BREAKING
 
-    def no_need_breaking(self, other_speed_x, other_speed_y):
-        if is_horizontal(self.current_road().direction):
-            return abs(self.speed_x) < abs(other_speed_x)
+    def no_need_breaking(self, other):
+        if other.current_road() != self.current_road():
+            if is_horizontal(self.current_road().direction):
+                return abs(self.speed_x) < abs(other.speed_y)
+            else:
+                return abs(self.speed_y) < abs(other.speed_x)
         else:
-            return abs(self.speed_y) < abs(other_speed_y)
+            if is_horizontal(self.current_road().direction):
+                return abs(self.speed_x) < abs(other.speed_x)
+            else:
+                return abs(self.speed_y) < abs(other.speed_y)
 
     def get_safety_time(self, d):
         if is_horizontal(self.current_road().direction):
@@ -167,28 +176,44 @@ class Car(Agent):
         while self.requests:
             req = self.requests.pop()
             if req.m_type == MessageType.DISTANCE and self.before(req.requester):
-                req.requester.answers.append(Response(MessageType.DISTANCE, [distance(self.x, self.y, req.requester.x, req.requester.y), (self.speed_x, self.speed_x)]))
+                req.requester.answers.append(Response(MessageType.DISTANCE, [manhattan_distance(self.x, self.y, req.requester.x, req.requester.y), self]))
 
     def before(self, other):
         if other.current_road() != self.current_road():
-            return False
-        if self.current_road().direction == Direction.WE:
-            distance = self.x - other.x
-        if self.current_road().direction == Direction.EW:
-            distance = -(self.x - other.x)
-        if self.current_road().direction == Direction.NS:
-            distance = self.y-other.y
-        if self.current_road().direction == Direction.SN:
-            distance = -(self.y - other.y)
+            distance = manhattan_distance(self.x, self.y, other.x, other.y)
+        else:
+            if self.current_road().direction == Direction.WE:
+                distance = self.x - other.x
+            if self.current_road().direction == Direction.EW:
+                distance = -(self.x - other.x)
+            if self.current_road().direction == Direction.NS:
+                distance = self.y-other.y
+            if self.current_road().direction == Direction.SN:
+                distance = -(self.y - other.y)
 
-        if distance>0 and distance<constants.DISTANCE_FOR_RESPONSE:
+        if distance > 0 and distance<constants.DISTANCE_FOR_RESPONSE:
             return True
         return False
 
     def make_requests(self):
-        for each in self.get_block(self.x, self.y).cars:
+        block = self.get_block(self.x, self.y)
+        for each in block.cars:
             if not each == self:
                 each.requests.append(Request(self, MessageType.DISTANCE))
+
+        next_block = block.road.get_next_block(block)
+        turning_block = block.road.get_next_turning_block(block)
+
+        next_road = self.next_road()
+
+        if next_road and turning_block and next_road == turning_block.road:
+            for each in turning_block.cars:
+                if not each == self:
+                    each.requests.append(Request(self, MessageType.DISTANCE))
+        elif next_block:
+            for each in next_block.cars:
+                if not each == self:
+                    each.requests.append(Request(self, MessageType.DISTANCE))
 
     def process_location(self, delta_t):
         self.update_position(delta_t)

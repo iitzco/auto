@@ -2,6 +2,7 @@ import tkinter as tk
 import constants
 
 import random
+import math
 
 class ConsoleGUI():
     def __init__(self):
@@ -36,6 +37,7 @@ class TkinterGUI():
         spot = self.cars_map.get(agent.id)
         if spot:
             self.frame.delete_agent(spot)
+
 
 class MainFrame(tk.Frame):
 
@@ -93,7 +95,6 @@ class MainFrame(tk.Frame):
             pos = (i*self.city.block_width_size*self.rel_x) + self.margin_w
             self.canvas.create_rectangle(pos-constants.ROAD_WIDTH/2, self.margin_h, pos+constants.ROAD_WIDTH/2, self.h+self.margin_h, fill="gray", outline='grey')
 
-
     def get_drawing_position(self, car):
         x = car.x*self.rel_x + self.margin_w
         y = car.y*self.rel_y + self.margin_h
@@ -102,13 +103,21 @@ class MainFrame(tk.Frame):
     def update_car(self, car, cars_map):
         spot = cars_map.get(car.id)
         if spot:
-            color = spot[1]
             self.canvas.delete(spot[0])
-        else:
-            color = random.choice(["red", "green", "blue", "cyan", "yellow", "magenta"])
+        color = self.get_speed_color(car)
         pos = self.get_drawing_position(car)
         id_ = self.canvas.create_oval(pos[0]-constants.CAR_RADIUS, pos[1]-constants.CAR_RADIUS, pos[0]+constants.CAR_RADIUS, pos[1]+constants.CAR_RADIUS, fill=color)
         cars_map[car.id] = (id_, color)
 
     def delete_agent(self, spot):
         self.canvas.delete(spot[0])
+
+    def get_speed_color(self, car):
+        speed = math.sqrt(car.speed_x**2 + car.speed_y**2)
+        speed = speed/self.city.get_max_speed()
+        if speed > 1:
+            speed = 1
+        base_FF_speed = int(speed*255)
+        invert_FF_speed = int(255 - base_FF_speed)
+        return "#00" + "{:02x}".format(base_FF_speed) + "{:02x}".format(invert_FF_speed)
+
