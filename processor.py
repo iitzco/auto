@@ -31,5 +31,5 @@ class Processor(object):
             self.last = now
             for agent in self.agents:
                 agent.process(delta_t)
-            self.gui.update(self.agents) 
+            self.gui.update(self.agents, delta_t) 
 

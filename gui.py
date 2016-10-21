@@ -19,11 +19,15 @@ class TkinterGUI():
         self.processor = processor
         self.frame = MainFrame(city, self)
         self.cars_map = {}
+        self.fading_accident_list = []
+
+
         self.refresh()
 
-    def update(self, cars):
+    def update(self, cars, delta_t):
         for car in cars:
             self.frame.update_car(car, self.cars_map) 
+        self.frame.update_accidents(delta_t)
         self.refresh()
 
     def refresh(self):
@@ -65,6 +69,13 @@ class MainFrame(tk.Frame):
 
         self.add_boost_button = tk.Button(self.menu_frame, text='Add {} Cars'.format(int(self.city.vertical_roads_count+self.city.horizontal_roads_count)), command=self.city.add_multiple_agents)
         self.add_boost_button.pack()
+
+        self.add_super_boost_button = tk.Button(self.menu_frame, text='Add {} Cars'.format(int(self.city.vertical_roads_count+self.city.horizontal_roads_count)*5), command=self.city.add_times_multiple_agents)
+        self.add_super_boost_button.pack()
+
+        self.accident_label = tk.Label(self.menu_frame, text='Accidents: {}'.format(self.city.accidents))
+        self.accident_label.pack()
+        
 
     def init_main_frame(self):
         self.master.title("GUI")
@@ -108,6 +119,27 @@ class MainFrame(tk.Frame):
         pos = self.get_drawing_position(car)
         id_ = self.canvas.create_oval(pos[0]-constants.CAR_RADIUS, pos[1]-constants.CAR_RADIUS, pos[0]+constants.CAR_RADIUS, pos[1]+constants.CAR_RADIUS, fill=color)
         cars_map[car.id] = (id_, color)
+
+    def update_accidents(self, delta_t):
+        self.accident_label.config(text='Accidents: {}'.format(self.city.accidents))
+        for each in self.city.accidents_list:
+            (c1, c2) = self.city.accidents_list.pop()
+            x = (c1.x + c2.x)/2
+            y = (c1.y + c2.y)/2
+            x = x*self.rel_x + self.margin_w
+            y = y*self.rel_y + self.margin_h
+            id_ = self.canvas.create_oval(x-3*constants.CAR_RADIUS, y-3*constants.CAR_RADIUS, x+3*constants.CAR_RADIUS, y+3*constants.CAR_RADIUS, fill='red')
+            self.manager.fading_accident_list.append([id_, (x,y), 3*constants.CAR_RADIUS])
+        for each in self.manager.fading_accident_list[:]:
+            self.canvas.delete(each[0])
+            x, y = each[1]
+            r = each[2]
+            id_ = self.canvas.create_oval(x-r, y-r, x+r, y+r, fill='red')
+            each[2] = each[2] - 5*delta_t
+            if each[2] < 0:
+                self.canvas.delete(id_)
+                self.manager.fading_accident_list.remove(each)
+            each[0] = id_
 
     def delete_agent(self, spot):
         self.canvas.delete(spot[0])

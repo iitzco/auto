@@ -73,6 +73,7 @@ class Car(Agent):
 
         self.prev_x, self.prev_y = None, None
 
+
     def set_position(self):
         start_road = self.route.origin.road
         if start_road.direction == Direction.EW or start_road.direction == Direction.WE:
@@ -176,22 +177,30 @@ class Car(Agent):
         while self.requests:
             req = self.requests.pop()
             if req.m_type == MessageType.DISTANCE and self.before(req.requester):
-                req.requester.answers.append(Response(MessageType.DISTANCE, [manhattan_distance(self.x, self.y, req.requester.x, req.requester.y), self]))
+                d = 0
+                if req.requester.current_road() != self.current_road():
+                    d = manhattan_distance(self.x, self.y, req.requester.x, req.requester.y) - 2*constants.CAR_RADIUS
+                else:
+                    d = distance(self.x, self.y, req.requester.x, req.requester.y) - 2*constants.CAR_RADIUS
+                if d <= 0:
+                    self.city.inform_crash(self, req.requester)
+                else:
+                    req.requester.answers.append(Response(MessageType.DISTANCE, [d, self]))
 
     def before(self, other):
         if other.current_road() != self.current_road():
-            distance = manhattan_distance(self.x, self.y, other.x, other.y)
+            d = manhattan_distance(self.x, self.y, other.x, other.y)
         else:
             if self.current_road().direction == Direction.WE:
-                distance = self.x - other.x
+                d = self.x - other.x
             if self.current_road().direction == Direction.EW:
-                distance = -(self.x - other.x)
+                d = -(self.x - other.x)
             if self.current_road().direction == Direction.NS:
-                distance = self.y-other.y
+                d = self.y-other.y
             if self.current_road().direction == Direction.SN:
-                distance = -(self.y - other.y)
+                d = -(self.y - other.y)
 
-        if distance > 0 and distance<constants.DISTANCE_FOR_RESPONSE:
+        if d > 0 and d<constants.DISTANCE_FOR_RESPONSE:
             return True
         return False
 

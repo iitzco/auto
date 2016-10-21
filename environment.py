@@ -1,5 +1,5 @@
 from agents import Car
-from utils import Direction, is_horizontal
+from utils import Direction, is_horizontal, manhattan_distance
 
 import constants
 
@@ -105,6 +105,11 @@ class Environment(object):
             agent = self.create_random_agent()
             self.processor.add_agent(agent)
 
+    def add_times_multiple_agents(self):
+        for i in range(5*self.get_multiple_amount()):
+            agent = self.create_random_agent()
+            self.processor.add_agent(agent)
+
     def delete_agent(self, agent):
         self.processor.remove_agent(agent)
 
@@ -126,6 +131,8 @@ class City(Environment):
         self.block_width_size = width/ (self.horizontal_roads_count-1)
 
         self.generate_roads()
+        self.accidents = 0
+        self.accidents_list = []
 
     def generate_roads(self):
         self.roads = []
@@ -170,9 +177,27 @@ class City(Environment):
             return Place(road, random.randint(number - int(self.block_height_size)-1, number))
 
     def get_random_place(self):
-        if random.random()>0.5:
-            return Place(self.horizontal_roads[random.randint(0, int(self.horizontal_roads_count)-1)], random.randint(0, int(self.width)-1))
-        return Place(self.vertical_roads[random.randint(0, int(self.vertical_roads_count)-1)], random.randint(0, int(self.height)-1))
+        while True:
+            if random.random()>0.5:
+                road = self.horizontal_roads[random.randint(0, int(self.horizontal_roads_count)-1)]
+            else:
+                road =self.vertical_roads[random.randint(0, int(self.vertical_roads_count)-1)]
+            number = random.randint(0, int(self.width)-1)
+            block = road.get_block(number)
+            if number > (block.from_n + 0.25*road.size_per_block) and number < (block.to_n - 0.25*road.size_per_block):
+                if not block.cars:
+                    return Place(road, number)
+                else:
+                    overlaps = False
+                    for each in block.cars:
+                        if is_horizontal(road.direction):
+                            if abs(each.x - number) < 3*constants.CAR_RADIUS:
+                                overlaps = True
+                        else:
+                            if abs(each.y - number) < 3*constants.CAR_RADIUS:
+                                overlaps = True
+                    if not overlaps:
+                        return Place(road, number)
 
     def get_starting_number(self, from_road, to_road):
         if to_road.direction == Direction.EW:
@@ -214,6 +239,12 @@ class City(Environment):
                 if (not (place.road.number == 0 and self.horizontal_roads[i].direction == Direction.EW)) and (not (place.road.number == self.vertical_roads_count-1 and self.horizontal_roads[i].direction == Direction.WE)):
                     candidates.append(self.horizontal_roads[i])
             return candidates
+
+    def inform_crash(self, car1, car2):
+        self.accidents+=1
+        self.accidents_list.append((car1, car2))
+        self.processor.remove_agent(car1)
+        self.processor.remove_agent(car2)
 
     def get_max_speed(self):
         return constants.MAX_CRUISE_SPEED
