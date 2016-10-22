@@ -5,8 +5,8 @@ import environment
 
 import constants
 
-class Processor(object):
 
+class Processor(object):
     def __init__(self, environment):
         self.environment = environment
         self.environment.set_processor(self)
@@ -21,6 +21,9 @@ class Processor(object):
         self.agents.append(agent)
 
     def remove_agent(self, agent):
+        if agent not in self.agents:
+            # Because of a crash with a ghost car (whose response remains in answers queue)
+            return
         self.agents.remove(agent)
         self.gui.remove_agent(agent)
 
@@ -31,5 +34,4 @@ class Processor(object):
             self.last = now
             for agent in self.agents:
                 agent.process(delta_t)
-            self.gui.update(self.agents, delta_t) 
-
+            self.gui.update(self.agents, delta_t)
