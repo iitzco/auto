@@ -63,7 +63,7 @@ class Car(Agent):
         self.speed_y = 0
 
         self.set_position()
-        self.locate_car()
+        self.get_block().cars.append(self)
 
         self.state = State.ACCELERATING
         self.arrived = False
@@ -83,9 +83,6 @@ class Car(Agent):
             sign = 1 if start_road.direction == Direction.NS else -1
             self.acc_y, self.acc_x = sign * self.acceleration, 0
 
-    def locate_car(self):
-        self.get_block().cars.append(self)
-
     def get_block(self):
         return self.route.blocks[self.route.index]
 
@@ -93,9 +90,9 @@ class Car(Agent):
         return self.route.blocks[self.route.index].road
 
     def process(self, delta_t):
-        # self.process_answers()
-        # self.process_requests()
-        # self.make_requests()
+        self.process_answers()
+        self.process_requests()
+        self.make_requests()
         self.process_location(delta_t)
 
     def process_answers(self):
@@ -203,16 +200,14 @@ class Car(Agent):
                 each.requests.append(Request(self, MessageType.DISTANCE))
 
         next_block = block.road.get_next_block(block)
-        turning_block = block.road.get_next_turning_block(block)
-
-        next_road = self.next_road()
-
-        if next_road and turning_block and next_road == turning_block.road:
-            for each in turning_block.cars:
+        if next_block:
+            for each in next_block.cars:
                 if not each == self:
                     each.requests.append(Request(self, MessageType.DISTANCE))
-        elif next_block:
-            for each in next_block.cars:
+
+        turning_block = block.road.get_next_turning_block(block)
+        if turning_block:
+            for each in turning_block.cars:
                 if not each == self:
                     each.requests.append(Request(self, MessageType.DISTANCE))
 
@@ -269,9 +264,14 @@ class Car(Agent):
                 self.speed_x, self.speed_y = sign * self.speed_y, sign * self.speed_x
                 self.acc_x, self.acc_y = sign * self.acc_y, sign * self.acc_x
 
-            self.get_block().cars.append(self)
+            self.get_block().cars.remove(self)
             self.route.index += 1
             self.get_block().cars.append(self)
+
+        # lost cars
+        elif self.on_end_of_other_block():
+            # TODO
+            pass
 
     def on_end_of_block(self):
 
@@ -300,7 +300,7 @@ class Car(Agent):
             self.city.delete_agent(self)
 
     def out_of_city(self):
-        return self.x < 0 or self.x > self.city.width or self.y < 0 or self.y > self.city.height
+        return self.x < -constants.ERROR or self.x > self.city.width + constants.ERROR or self.y < -constants.ERROR or self.y > self.city.height + constants.ERROR
 
     def has_arrived(self):
         if is_horizontal(self.route.blocks[-1].road.direction):
