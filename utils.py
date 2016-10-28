@@ -29,11 +29,10 @@ def show_city(city):
             print(h_s.format(*aux_l))
         s = ''.join('.' for e in range(len(h_s)))
         print(s)
-        print(
-            ('   →   ' if city.horizontal_roads[i].direction == Direction.WE
-             else '   ←   '
-             if city.horizontal_roads[i].direction == Direction.EW else '↔') *
-            (len(h_s) // 7))
+        print(('   →   ' if city.horizontal_roads[i].direction == Direction.WE
+               else '   ←   '
+               if city.horizontal_roads[i].direction == Direction.EW else
+               '↔') * (len(h_s) // 7))
         print(s)
         for j in range(int(city.height_distance) // 4):
             aux_l = l if j % 2 else [' '] * city.vertical_roads_count

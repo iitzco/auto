@@ -56,6 +56,8 @@ class City(Environment):
         self.accidents = 0
         self.accidents_list = []
 
+        self.arrivals = 0
+
     def generate_roads(self):
         self.roads = []
         self.horizontal_roads = {}
@@ -80,6 +82,9 @@ class City(Environment):
         self.accidents_list.append((car1, car2))
         self.processor.remove_agent(car1)
         self.processor.remove_agent(car2)
+
+    def inform_arrival(self):
+        self.arrivals += 1
 
     def get_max_speed(self):
         return constants.MAX_CRUISE_SPEED

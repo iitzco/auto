@@ -1,9 +1,11 @@
 from utils import Direction, is_horizontal, manhattan_distance
 
+
 class Place(object):
     def __init__(self, block, number):
         self.block = block
         self.number = number
+
 
 class Route(object):
     def __init__(self, blocks, origin, destiny):
@@ -13,6 +15,7 @@ class Route(object):
         # Places
         self.origin = origin
         self.destiny = destiny
+
 
 class Block(object):
     def __init__(self, number, road, from_n, to_n):
@@ -69,7 +72,7 @@ class Road(object):
                 return road.blocks[block_number] if block_number < len(
                     self.blocks) else None
             else:
-                block_number = self.number -1
+                block_number = self.number - 1
                 return road.blocks[block_number] if block_number >= 0 else None
 
         if self.direction == Direction.WE:
@@ -91,5 +94,3 @@ class Road(object):
             else:
                 block_number = self.number - 1
                 return road.blocks[block_number] if block_number >= 0 else None
-
-

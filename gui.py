@@ -27,6 +27,7 @@ class TkinterGUI():
         for car in cars:
             self.frame.update_car(car, self.cars_map)
         self.frame.update_accidents(delta_t)
+        self.frame.menu_frame.update_arrival_label()
         self.frame.menu_frame.update_delta_t_label(delta_t)
         self.frame.menu_frame.update_cars_label(len(self.processor.agents))
         self.refresh()
@@ -57,6 +58,12 @@ class MenuFrame(tk.Frame):
             text='Accidents: {}'.format(self.city.accidents),
             font=(None, 20))
         self.accident_label.pack(pady=5)
+
+        self.arrival_label = tk.Label(
+            self,
+            text='Safe Arrivals: {}'.format(self.city.accidents),
+            font=(None, 20))
+        self.arrival_label.pack(pady=5)
 
         self.delta_t_label = tk.Label(self, text='DeltaT: ', font=(None, 20))
         self.delta_t_label.pack(pady=5)
@@ -90,6 +97,10 @@ class MenuFrame(tk.Frame):
     def update_accidents_label(self):
         self.accident_label.config(
             text='Accidents: {}'.format(self.city.accidents))
+
+    def update_arrival_label(self):
+        self.arrival_label.config(
+            text='Safe Arrivals: {}'.format(self.city.arrivals))
 
     def update_delta_t_label(self, delta_t):
         self.delta_t_label.config(text='DeltaT: {:.3f}'.format(delta_t))

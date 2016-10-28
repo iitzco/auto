@@ -6,6 +6,7 @@ from components import Block, Place, Road, Route
 
 from agents import Car
 
+
 class CarFactory(object):
     def __init__(self, city):
         self.city = city
@@ -29,8 +30,10 @@ class CarFactory(object):
 
         route = Route(route_list, start, end)
 
-        speed = random.uniform(constants.MIN_CRUISE_SPEED, constants.MAX_CRUISE_SPEED)
-        acc = random.uniform(constants.MIN_ACCEL_SPEED, constants.MAX_ACCEL_SPEED)
+        speed = random.uniform(constants.MIN_CRUISE_SPEED,
+                               constants.MAX_CRUISE_SPEED)
+        acc = random.uniform(constants.MIN_ACCEL_SPEED,
+                             constants.MAX_ACCEL_SPEED)
 
         return Car(self.city, route, speed, acc)
 
