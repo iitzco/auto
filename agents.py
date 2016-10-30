@@ -129,12 +129,16 @@ class NavigationManager(object):
                     abs(self.speed_x) > self.max_speed):
                 self.state = State.CRUISING
 
-            if self.state == State.BREAKING and (
-                    abs(prev_speeds[0] - self.speed_x) > abs(prev_speeds[0]) or
-                    abs(prev_speeds[1] - self.speed_y) > abs(prev_speeds[1])):
-                self.speed_x = 0
-                self.speed_y = 0
-                self.state = State.STOPPED
+            if self.state == State.BREAKING:
+                if abs(prev_speeds[0] - self.speed_x) > abs(prev_speeds[
+                        0]) or abs(prev_speeds[1] - self.speed_y) > abs(
+                            prev_speeds[1]):
+                    self.speed_x = 0
+                    self.speed_y = 0
+                    self.state = State.STOPPED
+                else:
+                    self.set_original_acc()
+                    self.acc_x, self.acc_y = -self.acc_x, -self.acc_y
 
     def analyze_update(self):
         # Analyze also lost cars that missed a turn.
