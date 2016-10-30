@@ -150,43 +150,32 @@ class NavigationManager(object):
         expected_block = self.expected_block()
 
         if not self.on_end_of_block(block):
-            return
-
-        if ((road.direction == Direction.NS or road.direction == Direction.WE)
-                and (expected_block.number > block.number)) or (
-                    (road.direction == Direction.SN or
-                     road.direction == Direction.EW) and
-                    (expected_block.number < block.number)):
-            return
-
-        elif expected_block == block and self.route.index != len(
-                self.route.blocks) - 1:
-
-            curr = self.route.blocks[self.route.index].road.direction
-            next_ = self.route.blocks[self.route.index + 1].road.direction
-
-            if curr != next_:
-                if curr == Direction.NS:
-                    sign = 1 if next_ == Direction.WE else -1
-                if curr == Direction.SN:
-                    sign = 1 if next_ == Direction.EW else -1
-                if curr == Direction.EW:
-                    sign = 1 if next_ == Direction.SN else -1
-                if curr == Direction.WE:
-                    sign = 1 if next_ == Direction.NS else -1
-                self.speed_x, self.speed_y = sign * self.speed_y, sign * self.speed_x
-                self.acc_x, self.acc_y = sign * self.acc_y, sign * self.acc_x
-
             self.remove_from_road(road)
-            self.route.index += 1
-
-            n_block = self.route.blocks[self.route.index]
-            n_block.cars.append(self.car)
+            block.cars.append(self.car)
 
         else:
-            self.remove_from_road(road)
-            n_block = road.get_next_block(block)
-            if n_block:
+            if expected_block == block and self.route.index != len(
+                    self.route.blocks) - 1:
+
+                curr = self.route.blocks[self.route.index].road.direction
+                next_ = self.route.blocks[self.route.index + 1].road.direction
+
+                if curr != next_:
+                    if curr == Direction.NS:
+                        sign = 1 if next_ == Direction.WE else -1
+                    if curr == Direction.SN:
+                        sign = 1 if next_ == Direction.EW else -1
+                    if curr == Direction.EW:
+                        sign = 1 if next_ == Direction.SN else -1
+                    if curr == Direction.WE:
+                        sign = 1 if next_ == Direction.NS else -1
+                    self.speed_x, self.speed_y = sign * self.speed_y, sign * self.speed_x
+                    self.acc_x, self.acc_y = sign * self.acc_y, sign * self.acc_x
+
+                self.remove_from_road(road)
+                self.route.index += 1
+
+                n_block = self.route.blocks[self.route.index]
                 n_block.cars.append(self.car)
 
     def remove_from_road(self, road):
