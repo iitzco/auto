@@ -149,34 +149,32 @@ class NavigationManager(object):
         block = self.current_block()
         expected_block = self.expected_block()
 
-        if not self.on_end_of_block(block):
-            self.remove_from_road(road)
-            block.cars.append(self.car)
+        self.remove_from_road(road)
 
-        else:
-            if expected_block == block and self.route.index != len(
+        if self.on_end_of_block(
+                block) and expected_block == block and self.route.index != len(
                     self.route.blocks) - 1:
 
-                curr = self.route.blocks[self.route.index].road.direction
-                next_ = self.route.blocks[self.route.index + 1].road.direction
+            curr = self.route.blocks[self.route.index].road.direction
+            next_ = self.route.blocks[self.route.index + 1].road.direction
 
-                if curr != next_:
-                    if curr == Direction.NS:
-                        sign = 1 if next_ == Direction.WE else -1
-                    if curr == Direction.SN:
-                        sign = 1 if next_ == Direction.EW else -1
-                    if curr == Direction.EW:
-                        sign = 1 if next_ == Direction.SN else -1
-                    if curr == Direction.WE:
-                        sign = 1 if next_ == Direction.NS else -1
-                    self.speed_x, self.speed_y = sign * self.speed_y, sign * self.speed_x
-                    self.acc_x, self.acc_y = sign * self.acc_y, sign * self.acc_x
+            if curr != next_:
+                if curr == Direction.NS:
+                    sign = 1 if next_ == Direction.WE else -1
+                if curr == Direction.SN:
+                    sign = 1 if next_ == Direction.EW else -1
+                if curr == Direction.EW:
+                    sign = 1 if next_ == Direction.SN else -1
+                if curr == Direction.WE:
+                    sign = 1 if next_ == Direction.NS else -1
+                self.speed_x, self.speed_y = sign * self.speed_y, sign * self.speed_x
+                self.acc_x, self.acc_y = sign * self.acc_y, sign * self.acc_x
 
-                self.remove_from_road(road)
-                self.route.index += 1
+            self.route.index += 1
 
-                n_block = self.route.blocks[self.route.index]
-                n_block.cars.append(self.car)
+        # current_block takes into account index++ in case of not lost car.
+        new_block = self.current_block()
+        new_block.cars.append(self.car)
 
     def remove_from_road(self, road):
         for each in road.blocks:
