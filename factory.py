@@ -67,9 +67,9 @@ class CarFactory(object):
                     overlaps = False
                     for each in block.cars:
                         if is_horizontal(road.direction):
-                            pos = each.x
+                            pos = each.navigation_manager.x
                         else:
-                            pos = each.y
+                            pos = each.navigation_manager.y
                         if abs(pos - number) < 3 * constants.CAR_RADIUS:
                             overlaps = True
                             break

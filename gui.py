@@ -154,7 +154,8 @@ class CityFrame(tk.Frame):
                 outline='grey')
 
     def get_drawing_position_car(self, car):
-        return self.get_drawing_position(car.x, car.y)
+        return self.get_drawing_position(car.navigation_manager.x,
+                                         car.navigation_manager.y)
 
     def get_drawing_position(self, x, y):
         mapped_x = x * self.rel_x + self.margin_w
@@ -179,8 +180,9 @@ class CityFrame(tk.Frame):
         self.parent.menu_frame.update_accidents_label()
         for each in self.city.accidents_list[:]:
             (c1, c2) = self.city.accidents_list.pop()
-            x, y = self.get_drawing_position((c1.x + c2.x) / 2,
-                                             (c1.y + c2.y) / 2)
+            x, y = self.get_drawing_position(
+                (c1.navigation_manager.x + c2.navigation_manager.x) / 2,
+                (c1.navigation_manager.y + c2.navigation_manager.y) / 2)
             r = 3 * constants.CAR_RADIUS
             id_ = self.canvas.create_oval(
                 x - r, y - r, x + r, y + r, fill='red')
@@ -205,7 +207,8 @@ class CityFrame(tk.Frame):
         self.canvas.delete(spot[0])
 
     def get_speed_color(self, car):
-        speed = math.sqrt(car.speed_x**2 + car.speed_y**2)
+        speed = math.sqrt(car.navigation_manager.speed_x**2 +
+                          car.navigation_manager.speed_y**2)
         speed = speed / self.city.get_max_speed()
         if speed > 1:
             speed = 1
