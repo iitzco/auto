@@ -94,3 +94,40 @@ class Road(object):
             else:
                 block_number = self.number - 1
                 return road.blocks[block_number] if block_number >= 0 else None
+
+    def get_priority_block(self, block):
+        index = block.number
+
+        if self.direction == Direction.NS:
+            road = self.city.horizontal_roads[index + 1]
+            if road.direction == Direction.WE:
+                block_number = self.number - 1
+                return road.blocks[block_number] if block_number >= 0 else None
+            else:
+                return None
+
+        if self.direction == Direction.SN:
+            road = self.city.horizontal_roads[index]
+            if road.direction == Direction.EW:
+                block_number = self.number
+                return road.blocks[block_number] if block_number < len(
+                    self.blocks) else None
+            else:
+                return None
+
+        if self.direction == Direction.WE:
+            road = self.city.vertical_roads[index + 1]
+            if road.direction == Direction.SN:
+                block_number = self.number
+                return road.blocks[block_number] if block_number < len(
+                    self.blocks) else None
+            else:
+                return None
+
+        if self.direction == Direction.EW:
+            road = self.city.vertical_roads[index]
+            if road.direction == Direction.NS:
+                block_number = self.number - 1
+                return road.blocks[block_number] if block_number >= 0 else None
+            else:
+                return None

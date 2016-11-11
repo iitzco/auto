@@ -20,6 +20,7 @@ class State(Enum):
 class MessageType(Enum):
 
     DISTANCE = 1
+    INTERSECTION = 2
 
 
 class Message(object):
@@ -307,6 +308,7 @@ class CommunicationManager(object):
 
         while self.car.answers:
             ans = self.car.answers.pop()
+
             if ans.m_type == MessageType.DISTANCE:
                 if ans.msg[0] < constants.DISTANCE_ACCEPTANCE:
                     if (not most_important_distance_msg
@@ -357,6 +359,13 @@ class CommunicationManager(object):
                 if not each == self.car:
                     each.requests.append(
                         Request(self.car, MessageType.DISTANCE))
+
+        priority_block = block.road.get_priority_block(block)
+        if priority_block:
+            for each in turning_block.cars:
+                if not each == self.car:
+                    each.requests.append(
+                        Request(self.car, MessageType.INTERSECTION))
 
 
 class Car(Agent):
