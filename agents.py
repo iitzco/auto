@@ -1,8 +1,10 @@
-from utils import Direction, is_horizontal, distance, manhattan_distance
+from utils import Direction, is_horizontal, distance, manhattan_distance, get_cuadratic_solution
 import constants
 
 import time
 from enum import Enum
+
+INFINITE = 100000
 
 
 def signo(num):
@@ -15,6 +17,7 @@ class State(Enum):
     BREAKING = 2
     CRUISING = 3
     STOPPED = 4
+    WAITING = 5
 
 
 class MessageType(Enum):
@@ -228,8 +231,15 @@ class NavigationManager(object):
         return abs(n - self.route.destiny.number) < constants.ERROR
 
     def process_break(self, distance, other):
-        if self.state == State.STOPPED or self.no_need_breaking(other):
+        if self.state == State.STOPPED or (other.is_real() and
+                                           self.no_need_breaking(other)):
             self.process_return()
+            return
+
+        if not other.is_real():
+            self.speed_x = 0
+            self.speed_y = 0
+            self.state = State.STOPPED
             return
 
         t = self.get_safety_time(distance)
@@ -238,6 +248,8 @@ class NavigationManager(object):
             self.acc_x = (other.navigation_manager.speed_x - self.speed_x) / t
         else:
             self.acc_y = (other.navigation_manager.speed_y - self.speed_y) / t
+            # if self.speed_y > 22 and self.car.navigation_manager.current_block().number == 2 and self.car.navigation_manager.current_road().number == 2:
+            #     import ipdb; ipdb.set_trace()
 
         if self.state == State.CRUISING or self.state == State.ACCELERATING:
             self.state = State.BREAKING
@@ -298,6 +310,84 @@ class NavigationManager(object):
         return distance(self.x, self.y, other.navigation_manager.x,
                         other.navigation_manager.y) - 2 * constants.CAR_RADIUS
 
+    def time_to_enter_intersection(self):
+        curr_road_direction = self.current_road().direction
+        curr_block = self.current_block()
+        if is_horizontal(curr_road_direction):
+            if curr_road_direction == Direction.WE:
+                d = abs(curr_block.to_n - self.x)
+            else:
+                d = abs(curr_block.from_n - self.x)
+            return abs((d - constants.CAR_RADIUS) /
+                       self.speed_x) if self.speed_x != 0 else INFINITE
+        else:
+            if curr_road_direction == Direction.NS:
+                d = abs(curr_block.to_n - self.y)
+            else:
+                d = abs(curr_block.from_n - self.y)
+            return abs((d - constants.CAR_RADIUS) /
+                       self.speed_y) if self.speed_y != 0 else INFINITE
+
+    def time_to_leave_intersection(self):
+        curr_road_direction = self.current_road().direction
+        curr_block = self.current_block()
+        if is_horizontal(curr_road_direction):
+            if curr_road_direction == Direction.WE:
+                d = abs(curr_block.to_n - self.x)
+            else:
+                d = abs(curr_block.from_n - self.x)
+            return abs((d + constants.CAR_RADIUS) /
+                       self.speed_x) if self.speed_x != 0 else INFINITE
+        else:
+            if curr_road_direction == Direction.NS:
+                d = abs(curr_block.to_n - self.y)
+            else:
+                d = abs(curr_block.from_n - self.y)
+            return abs((d + constants.CAR_RADIUS) /
+                       self.speed_y) if self.speed_y != 0 else INFINITE
+
+    def distance_to_intersection(self):
+        curr_road_direction = self.current_road().direction
+        curr_block = self.current_block()
+        if is_horizontal(curr_road_direction):
+            if curr_road_direction == Direction.WE:
+                return abs(curr_block.to_n - self.x)
+            else:
+                return abs(curr_block.from_n - self.x)
+        else:
+            if curr_road_direction == Direction.NS:
+                return abs(curr_block.to_n - self.y)
+            else:
+                return abs(curr_block.from_n - self.y)
+
+    def get_next_intersection_coords(self):
+        curr_road_direction = self.current_road().direction
+        curr_block = self.current_block()
+        if is_horizontal(curr_road_direction):
+            if curr_road_direction == Direction.WE:
+                return (curr_block.to_n, self.y)
+            else:
+                return (curr_block.from_n, self.y)
+        else:
+            if curr_road_direction == Direction.NS:
+                return (self.x, curr_block.to_n)
+            else:
+                return (self.x, curr_block.from_n)
+
+    def get_fictional_next_car(self):
+        curr_road_direction = self.current_road().direction
+        curr_block = self.current_block()
+        if is_horizontal(curr_road_direction):
+            if curr_road_direction == Direction.WE:
+                return (self.x + constants.CAR_RADIUS, self.y)
+            else:
+                return (self.x - constants.CAR_RADIUS, self.y)
+        else:
+            if curr_road_direction == Direction.NS:
+                return (self.x, self.y + constants.CAR_RADIUS)
+            else:
+                return (self.x, self.y - constants.CAR_RADIUS)
+
 
 class CommunicationManager(object):
     def __init__(self, car):
@@ -305,6 +395,9 @@ class CommunicationManager(object):
 
     def process_answers(self):
         most_important_distance_msg = None
+
+        t1 = self.car.navigation_manager.time_to_enter_intersection()
+        t2 = self.car.navigation_manager.time_to_leave_intersection()
 
         while self.car.answers:
             ans = self.car.answers.pop()
@@ -315,12 +408,36 @@ class CommunicationManager(object):
                         ) or ans.msg[0] < most_important_distance_msg.msg[0]:
                         most_important_distance_msg = ans
 
+            if ans.m_type == MessageType.INTERSECTION:
+                other_t1 = ans.msg[0]
+                other_t2 = ans.msg[1]
+
+                if not (t2 < other_t1 - 0.1 or other_t2 < t1 - 0.1):
+
+                    if (
+                            not most_important_distance_msg
+                    ) or constants.CAR_RADIUS < most_important_distance_msg.msg[
+                            0]:
+
+                        x, y = self.car.navigation_manager.get_fictional_next_car(
+                        )
+                        fictional_car = FictionalCar(
+                            x, y, -self.car.navigation_manager.speed_x,
+                            -self.car.navigation_manager.speed_y)
+                        most_important_distance_msg = Response(
+                            MessageType.INTERSECTION,
+                            [constants.CAR_RADIUS, fictional_car])
+
+        # if self.car.navigation_manager.speed_y > 10 and self.car.navigation_manager.current_block().number == 2 and self.car.navigation_manager.current_road().number == 2:
+        #     import ipdb; ipdb.set_trace()
         if most_important_distance_msg:
+
             self.car.navigation_manager.process_break(
                 most_important_distance_msg.msg[0],
                 most_important_distance_msg.msg[1])
 
         else:
+
             self.car.navigation_manager.process_return()
 
     def process_requests(self):
@@ -338,6 +455,14 @@ class CommunicationManager(object):
                 else:
                     req.requester.answers.append(
                         Response(MessageType.DISTANCE, [d, self.car]))
+
+            if req.m_type == MessageType.INTERSECTION:
+
+                t1 = self.car.navigation_manager.time_to_enter_intersection()
+                t2 = self.car.navigation_manager.time_to_leave_intersection()
+                if t1 < INFINITE:
+                    req.requester.answers.append(
+                        Response(MessageType.INTERSECTION, (t1, t2)))
 
     def make_requests(self):
         block = self.car.navigation_manager.current_block()
@@ -362,7 +487,7 @@ class CommunicationManager(object):
 
         priority_block = block.road.get_priority_block(block)
         if priority_block:
-            for each in turning_block.cars:
+            for each in priority_block.cars:
                 if not each == self.car:
                     each.requests.append(
                         Request(self.car, MessageType.INTERSECTION))
@@ -389,3 +514,19 @@ class Car(Agent):
         self.communication_manager.process_requests()
         self.communication_manager.make_requests()
         self.navigation_manager.process_location(delta_t)
+
+    def is_real(self):
+        return True
+
+
+class FictionalCar(Agent):
+    def __init__(self, x, y, speed_x, speed_y):
+        self.navigation_manager = NavigationManager(self, None, None, None)
+
+        self.navigation_manager.speed_x = speed_x
+        self.navigation_manager.speed_y = speed_y
+        self.navigation_manager.x = x
+        self.navigation_manager.y = y
+
+    def is_real(self):
+        return False

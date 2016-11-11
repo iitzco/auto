@@ -49,3 +49,31 @@ def distance(x1, y1, x2, y2):
 
 def manhattan_distance(x1, y1, x2, y2):
     return abs(x1 - x2) + abs(y1 - y2)
+
+
+def get_cuadratic_solution(a, b, c):
+    d = (b**2) - (4 * a * c)  # discriminant
+
+    if d < 0:
+        return None
+    elif d == 0:
+        return (-b) / (2 * a)
+    else:
+        t1 = (-b + math.sqrt(b**2 - 4 * a * c)) / (2 * a)
+        t2 = (-b - math.sqrt(b**2 - 4 * a * c)) / (2 * a)
+        return (t1, t2)
+
+
+def get_useful_time(t):
+    if not t:
+        return INFINITE
+    if isinstance(t, tuple):
+        if t[0] > 0 and t[1] > 0:
+            return min(t)
+        if t[0] < 0 and t[1] < 0:
+            return INFINITE
+        return t[0] if t[0] > 0 else t[1]
+    if t < 0:
+        return INFINITE
+    else:
+        return t

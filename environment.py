@@ -78,7 +78,7 @@ class City(Environment):
         return int(self.vertical_roads_count + self.horizontal_roads_count)
 
     def inform_crash(self, car1, car2):
-        self.accidents += 1
+        self.accidents += 2
         self.accidents_list.append((car1, car2))
         self.processor.remove_agent(car1)
         self.processor.remove_agent(car2)
