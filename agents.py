@@ -367,15 +367,17 @@ class CommunicationManager(object):
                         most_important_distance_msg = ans
 
             if ans.m_type == MessageType.INTERSECTION:
-                self.car.navigation_manager.crossing_car = True
-
                 d = self.car.navigation_manager.distance_to_intersection()
-                if (not most_important_distance_msg
-                    ) or d < most_important_distance_msg.msg[0]:
 
-                    # 3 because d is distance from center of car to intersection.
-                    # Should include self, other car passing and extra space
-                    most_important_distance_msg = Response(MessageType.DISTANCE, [d - 3*constants.CAR_RADIUS, None])
+                if d > 3*constants.CAR_RADIUS:
+                    self.car.navigation_manager.crossing_car = True
+
+                    if (not most_important_distance_msg
+                        ) or d < most_important_distance_msg.msg[0]:
+
+                        # 3 because d is distance from center of car to intersection.
+                        # Should include self, other car passing and extra space
+                        most_important_distance_msg = Response(MessageType.DISTANCE, [d - 3*constants.CAR_RADIUS, None])
 
 
         if most_important_distance_msg:
