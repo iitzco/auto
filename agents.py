@@ -138,8 +138,7 @@ class NavigationManager(object):
 
             if self.state == State.BREAKING:
                 if abs(prev_speeds[0] - self.speed_x) > abs(prev_speeds[
-                        0]) or abs(prev_speeds[1] - self.speed_y) > abs(
-                            prev_speeds[1]):
+                    0]) or abs(prev_speeds[1] - self.speed_y) > abs(prev_speeds[1]):
                     self.speed_x = 0
                     self.speed_y = 0
                     self.state = State.STOPPED
@@ -278,6 +277,18 @@ class NavigationManager(object):
 
     def process_return(self):
         if self.arrived:
+            should_stop = False
+            if is_horizontal(self.current_road()):
+                if abs(self.speed_x) < 0.01 * self.max_speed:
+                    should_stop = True
+            else:
+                if abs(self.speed_y) < 0.01 * self.max_speed:
+                    should_stop = True
+
+            if should_stop:
+                self.speed_x, self.speed_y = 0,0
+                self.state = State.STOPPED
+
             return
 
         if self.state == State.STOPPED or self.state == State.BREAKING:
@@ -306,6 +317,21 @@ class NavigationManager(object):
     def effective_distance(self, other):
         return distance(self.x, self.y, other.navigation_manager.x,
                         other.navigation_manager.y) - 2 * constants.CAR_RADIUS
+
+    def passed_half_block(self):
+        curr_road_direction = self.current_road().direction
+        curr_block = self.current_block()
+        half = curr_block.from_n + (curr_block.to_n - curr_block.from_n)/2
+        if is_horizontal(curr_road_direction):
+            if curr_road_direction == Direction.WE:
+                return self.x > half
+            else:
+                return self.x < half
+        else:
+            if curr_road_direction == Direction.NS:
+                return self.y > half
+            else:
+                return self.y < half
 
     def distance_to_intersection(self):
         curr_road_direction = self.current_road().direction
@@ -377,8 +403,8 @@ class CommunicationManager(object):
                         Response(MessageType.DISTANCE, [d, self.car]))
 
             if req.m_type == MessageType.INTERSECTION:
-                # Check if it has passed half block
-                req.requester.answers.append(Response(MessageType.INTERSECTION, self.car))
+                if self.car.navigation_manager.passed_half_block():
+                    req.requester.answers.append(Response(MessageType.INTERSECTION, self.car))
 
     def make_requests(self):
         block = self.car.navigation_manager.current_block()
