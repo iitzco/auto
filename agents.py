@@ -278,11 +278,11 @@ class NavigationManager(object):
     def process_return(self):
         if self.arrived:
             should_stop = False
-            if is_horizontal(self.current_road()):
-                if abs(self.speed_x) < 0.01 * self.max_speed:
+            if is_horizontal(self.current_road().direction):
+                if abs(self.speed_x) < 0.05 * self.max_speed:
                     should_stop = True
             else:
-                if abs(self.speed_y) < 0.01 * self.max_speed:
+                if abs(self.speed_y) < 0.05 * self.max_speed:
                     should_stop = True
 
             if should_stop:
@@ -402,7 +402,7 @@ class CommunicationManager(object):
                     self.car.city.inform_crash(self.car, req.requester)
                 else:
                     req.requester.answers.append(
-                        Response(MessageType.DISTANCE, [d, self.car]))
+                        Response(MessageType.DISTANCE, [d*0.8, self.car])) # Aparent 80% less space for breaking
 
             if req.m_type == MessageType.INTERSECTION:
                 if self.car.navigation_manager.passed_half_block():
