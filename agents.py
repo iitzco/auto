@@ -138,7 +138,8 @@ class NavigationManager(object):
 
             if self.state == State.BREAKING:
                 if abs(prev_speeds[0] - self.speed_x) > abs(prev_speeds[
-                    0]) or abs(prev_speeds[1] - self.speed_y) > abs(prev_speeds[1]):
+                        0]) or abs(prev_speeds[1] - self.speed_y) > abs(
+                            prev_speeds[1]):
                     self.speed_x = 0
                     self.speed_y = 0
                     self.state = State.STOPPED
@@ -230,7 +231,8 @@ class NavigationManager(object):
         return abs(n - self.route.destiny.number) < constants.ERROR
 
     def process_break(self, distance, other):
-        if self.state == State.STOPPED or (other and self.no_need_breaking(other)):
+        if self.state == State.STOPPED or (other and
+                                           self.no_need_breaking(other)):
             if not self.crossing_car:
                 self.process_return()
             return
@@ -286,7 +288,7 @@ class NavigationManager(object):
                     should_stop = True
 
             if should_stop:
-                self.speed_x, self.speed_y = 0,0
+                self.speed_x, self.speed_y = 0, 0
                 self.state = State.STOPPED
 
             return
@@ -321,7 +323,7 @@ class NavigationManager(object):
     def passed_half_block(self):
         curr_road_direction = self.current_road().direction
         curr_block = self.current_block()
-        half = curr_block.from_n + (curr_block.to_n - curr_block.from_n)/2
+        half = curr_block.from_n + (curr_block.to_n - curr_block.from_n) / 2
         if is_horizontal(curr_road_direction):
             if curr_road_direction == Direction.WE:
                 return self.x > half
@@ -369,7 +371,7 @@ class CommunicationManager(object):
             if ans.m_type == MessageType.INTERSECTION:
                 d = self.car.navigation_manager.distance_to_intersection()
 
-                if d > 3*constants.CAR_RADIUS:
+                if d > 3 * constants.CAR_RADIUS:
                     self.car.navigation_manager.crossing_car = True
 
                     if (not most_important_distance_msg
@@ -377,8 +379,9 @@ class CommunicationManager(object):
 
                         # 3 because d is distance from center of car to intersection.
                         # Should include self, other car passing and extra space
-                        most_important_distance_msg = Response(MessageType.DISTANCE, [d - 3*constants.CAR_RADIUS, None])
-
+                        most_important_distance_msg = Response(
+                            MessageType.DISTANCE,
+                            [d - 3 * constants.CAR_RADIUS, None])
 
         if most_important_distance_msg:
             self.car.navigation_manager.process_break(
@@ -402,11 +405,14 @@ class CommunicationManager(object):
                     self.car.city.inform_crash(self.car, req.requester)
                 else:
                     req.requester.answers.append(
-                        Response(MessageType.DISTANCE, [d*0.8, self.car])) # Aparent 80% less space for breaking
+                        Response(MessageType.DISTANCE,
+                                 [d * 0.8, self.car
+                                  ]))  # Aparent 80% less space for breaking
 
             if req.m_type == MessageType.INTERSECTION:
                 if self.car.navigation_manager.passed_half_block():
-                    req.requester.answers.append(Response(MessageType.INTERSECTION, self.car))
+                    req.requester.answers.append(
+                        Response(MessageType.INTERSECTION, self.car))
 
     def make_requests(self):
         block = self.car.navigation_manager.current_block()
@@ -458,4 +464,3 @@ class Car(Agent):
         self.communication_manager.process_requests()
         self.communication_manager.make_requests()
         self.navigation_manager.process_location(delta_t)
-

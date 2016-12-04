@@ -4,7 +4,8 @@ import constants
 import random
 import math
 
-def frac(n, total): 
+
+def frac(n, total):
     return 360 * n / total if n < total else 359.9
 
 
@@ -36,7 +37,8 @@ class TkinterGUI():
         cars = len(self.processor.agents)
 
         self.frame.menu_frame.update_cars_label(cars)
-        self.frame.menu_frame.update_pie_chart(cars, self.city.arrivals, self.city.accidents)
+        self.frame.menu_frame.update_pie_chart(cars, self.city.arrivals,
+                                               self.city.accidents)
         self.refresh()
 
     def refresh(self):
@@ -57,6 +59,11 @@ class MenuFrame(tk.Frame):
         tk.Frame.__init__(self, parent)
         self.city = city
 
+        self.init_stats_menu()
+        self.init_controls_menu()
+        self.init_pie_chart()
+
+    def init_stats_menu(self):
         self.stats_label = tk.Label(self, text='Stats', font=(None, 40))
         self.stats_label.pack(side=tk.TOP)
 
@@ -78,6 +85,7 @@ class MenuFrame(tk.Frame):
         self.cars_label = tk.Label(self, text='Cars: ', font=(None, 20))
         self.cars_label.pack(pady=5)
 
+    def init_controls_menu(self):
         self.label = tk.Label(self, text='Menu', font=(None, 40))
         self.label.pack(side=tk.TOP)
 
@@ -101,12 +109,34 @@ class MenuFrame(tk.Frame):
             command=self.city.add_times_multiple_agents)
         self.add_super_boost_button.pack(pady=5)
 
-        self.pie_chart = tk.Canvas(self, width=100, height=100)
+    def init_pie_chart(self):
+        container = tk.Frame(self, height=2)
+        container.pack(pady=5)
+
+        self.pie_chart = tk.Canvas(container, width=100, height=100)
         xy = 10, 10, 100, 100
-        self.pie_chart.pack(pady=10)
-        self.accidents_portion = self.pie_chart.create_arc(xy, fill="red")
-        self.arrived_portion = self.pie_chart.create_arc(xy, fill="green")
-        self.remain_portion = self.pie_chart.create_arc(xy, fill="blue", start = 0, extent=359.9)
+        self.pie_chart.grid(rowspan=4, columnspan=6)
+        self.accidents_portion = self.pie_chart.create_arc(xy, fill="#860000")
+        self.arrived_portion = self.pie_chart.create_arc(xy, fill="#008D17")
+        self.remain_portion = self.pie_chart.create_arc(
+            xy, fill="#002486", start=0, extent=359.9)
+
+        tk.Label(
+            container,
+            text='travelling',
+            font=(None, 10, 'bold'),
+            fg="#002486").grid(
+                row=1, column=6)
+        tk.Label(
+            container, text='accidents', font=(None, 10, 'bold'),
+            fg="#860000").grid(
+                row=2, column=6)
+        tk.Label(
+            container,
+            text='safe arrivals',
+            font=(None, 10, 'bold'),
+            fg="#008D17").grid(
+                row=3, column=6)
 
     def update_accidents_label(self):
         self.accident_label.config(
@@ -125,9 +155,18 @@ class MenuFrame(tk.Frame):
     def update_pie_chart(self, cars, arrivals, accidents):
         total = cars + arrivals + accidents
         if total > 0:
-            self.pie_chart.itemconfig(self.accidents_portion, start=frac(0, total), extent=frac(accidents, total))
-            self.pie_chart.itemconfig(self.arrived_portion,start=frac(accidents, total), extent=frac(arrivals, total))
-            self.pie_chart.itemconfig(self.remain_portion,start=frac(accidents+arrivals, total), extent=frac(cars, total))
+            self.pie_chart.itemconfig(
+                self.accidents_portion,
+                start=frac(0, total),
+                extent=frac(accidents, total))
+            self.pie_chart.itemconfig(
+                self.arrived_portion,
+                start=frac(accidents, total),
+                extent=frac(arrivals, total))
+            self.pie_chart.itemconfig(
+                self.remain_portion,
+                start=frac(accidents + arrivals, total),
+                extent=frac(cars, total))
 
 
 class CityFrame(tk.Frame):
