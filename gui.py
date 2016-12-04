@@ -33,6 +33,8 @@ class TkinterGUI():
         self.frame.update_accidents(delta_t)
         self.frame.menu_frame.update_arrival_label()
         self.frame.menu_frame.update_delta_t_label(delta_t)
+        self.frame.menu_frame.update_total_label(
+            self.processor.simulation_time)
 
         cars = len(self.processor.agents)
 
@@ -59,6 +61,10 @@ class MenuFrame(tk.Frame):
         tk.Frame.__init__(self, parent)
         self.city = city
 
+        # To avoid movement of this frame. It's like a width parameter
+        self.label = tk.Label(self, text='A' * 10, font=(None, 40), fg='white')
+        self.label.pack(side=tk.TOP)
+
         self.init_stats_menu()
         self.init_controls_menu()
         self.init_pie_chart()
@@ -81,6 +87,9 @@ class MenuFrame(tk.Frame):
 
         self.delta_t_label = tk.Label(self, text='DeltaT: ', font=(None, 20))
         self.delta_t_label.pack(pady=5)
+
+        self.total_label = tk.Label(self, text='Simulation: ', font=(None, 20))
+        self.total_label.pack(pady=5)
 
         self.cars_label = tk.Label(self, text='Cars: ', font=(None, 20))
         self.cars_label.pack(pady=5)
@@ -126,22 +135,24 @@ class MenuFrame(tk.Frame):
         self.remain_portion = self.pie_chart.create_arc(
             xy, fill="#002486", start=0, extent=359.9)
 
-        tk.Label(
+        self.travelling_portion_label = tk.Label(
             container,
-            text='travelling',
-            font=(None, 10, 'bold'),
-            fg="#002486").grid(
-                row=1, column=6)
-        tk.Label(
-            container, text='accidents', font=(None, 10, 'bold'),
-            fg="#860000").grid(
-                row=2, column=6)
-        tk.Label(
+            text='Travelling 100.00%',
+            font=(None, 12, 'bold'),
+            fg="#002486")
+        self.travelling_portion_label.grid(row=1, column=6)
+        self.accidents_portion_label = tk.Label(
             container,
-            text='safe arrivals',
-            font=(None, 10, 'bold'),
-            fg="#008D17").grid(
-                row=3, column=6)
+            text='Accidents 0.00%',
+            font=(None, 12, 'bold'),
+            fg="#860000")
+        self.accidents_portion_label.grid(row=2, column=6)
+        self.arrived_portion_label = tk.Label(
+            container,
+            text='Arrivals 0.00%',
+            font=(None, 12, 'bold'),
+            fg="#008D17")
+        self.arrived_portion_label.grid(row=3, column=6)
 
     def pause_pressed(self):
         self.city.pause()
@@ -160,6 +171,9 @@ class MenuFrame(tk.Frame):
     def update_delta_t_label(self, delta_t):
         self.delta_t_label.config(text='DeltaT: {:.3f}'.format(delta_t))
 
+    def update_total_label(self, s_time):
+        self.total_label.config(text='Simulation: {:.1f}s'.format(s_time))
+
     def update_cars_label(self, quantity):
         self.cars_label.config(text='Cars: {}'.format(quantity))
 
@@ -170,14 +184,22 @@ class MenuFrame(tk.Frame):
                 self.arrived_portion,
                 start=frac(0, total),
                 extent=frac(arrivals, total))
+            self.arrived_portion_label.config(text="Arrivals {:.2f}%".format(
+                100 * arrivals / total))
+
             self.pie_chart.itemconfig(
                 self.accidents_portion,
                 start=frac(arrivals, total),
                 extent=frac(accidents, total))
+            self.accidents_portion_label.config(
+                text="Accidents {:.2f}%".format(100 * accidents / total))
+
             self.pie_chart.itemconfig(
                 self.remain_portion,
                 start=frac(accidents + arrivals, total),
                 extent=frac(cars, total))
+            self.travelling_portion_label.config(
+                text="Travelling {:.2f}%".format(100 * cars / total))
 
 
 class CityFrame(tk.Frame):
@@ -301,7 +323,7 @@ class MainFrame(tk.Frame):
         self.menu_frame = MenuFrame(self, self.city)
 
         self.city_frame.pack(fill=tk.BOTH, expand=tk.YES, side=tk.LEFT)
-        self.menu_frame.pack(fill=tk.BOTH, expand=tk.YES, side=tk.RIGHT)
+        self.menu_frame.pack(fill=tk.BOTH, expand=tk.NO, side=tk.RIGHT)
 
     def init_main_frame(self):
         self.master.title("AUTO - self driving cars")
