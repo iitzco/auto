@@ -13,6 +13,7 @@ class Processor(object):
         self.agents = []
         self.gui = gui.TkinterGUI(environment, self)
         self.last = None
+        self.paused = False
 
     def start_gui(self):
         self.gui.start()
@@ -32,6 +33,7 @@ class Processor(object):
             now = time.time()
             delta_t = (now - self.last) if self.last else 0
             self.last = now
-            for agent in self.agents:
-                agent.process(delta_t)
+            if not self.paused:
+                for agent in self.agents:
+                    agent.process(delta_t)
             self.gui.update(self.agents, delta_t)

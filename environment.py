@@ -35,6 +35,9 @@ class Environment(object):
     def get_all_agents(self):
         return self.processor.agents
 
+    def pause(self):
+        self.processor.paused = not self.processor.paused
+
 
 class City(Environment):
     def __init__(self, name, height, width, horizontal_roads_count,

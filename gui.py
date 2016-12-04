@@ -89,6 +89,10 @@ class MenuFrame(tk.Frame):
         self.label = tk.Label(self, text='Menu', font=(None, 40))
         self.label.pack(side=tk.TOP)
 
+        self.pause_button = tk.Button(
+            self, text='Pause', command=self.pause_pressed)
+        self.pause_button.pack(pady=5)
+
         self.add_button = tk.Button(
             self, text='Add Car', command=self.city.add_random_agent)
         self.add_button.pack(pady=5)
@@ -116,6 +120,7 @@ class MenuFrame(tk.Frame):
         self.pie_chart = tk.Canvas(container, width=100, height=100)
         xy = 10, 10, 100, 100
         self.pie_chart.grid(rowspan=4, columnspan=6)
+
         self.accidents_portion = self.pie_chart.create_arc(xy, fill="#860000")
         self.arrived_portion = self.pie_chart.create_arc(xy, fill="#008D17")
         self.remain_portion = self.pie_chart.create_arc(
@@ -138,6 +143,12 @@ class MenuFrame(tk.Frame):
             fg="#008D17").grid(
                 row=3, column=6)
 
+    def pause_pressed(self):
+        self.city.pause()
+        self.pause_button.config(text='Resume'
+                                 if self.pause_button.cget("text") == 'Pause'
+                                 else "Pause")
+
     def update_accidents_label(self):
         self.accident_label.config(
             text='Accidents: {}'.format(self.city.accidents))
@@ -156,13 +167,13 @@ class MenuFrame(tk.Frame):
         total = cars + arrivals + accidents
         if total > 0:
             self.pie_chart.itemconfig(
-                self.accidents_portion,
-                start=frac(0, total),
-                extent=frac(accidents, total))
-            self.pie_chart.itemconfig(
                 self.arrived_portion,
-                start=frac(accidents, total),
+                start=frac(0, total),
                 extent=frac(arrivals, total))
+            self.pie_chart.itemconfig(
+                self.accidents_portion,
+                start=frac(arrivals, total),
+                extent=frac(accidents, total))
             self.pie_chart.itemconfig(
                 self.remain_portion,
                 start=frac(accidents + arrivals, total),
