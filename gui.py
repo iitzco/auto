@@ -4,6 +4,9 @@ import constants
 import random
 import math
 
+def frac(n, total): 
+    return 360 * n / total if n < total else 359.9
+
 
 class ConsoleGUI():
     def __init__(self):
@@ -29,7 +32,11 @@ class TkinterGUI():
         self.frame.update_accidents(delta_t)
         self.frame.menu_frame.update_arrival_label()
         self.frame.menu_frame.update_delta_t_label(delta_t)
-        self.frame.menu_frame.update_cars_label(len(self.processor.agents))
+
+        cars = len(self.processor.agents)
+
+        self.frame.menu_frame.update_cars_label(cars)
+        self.frame.menu_frame.update_pie_chart(cars, self.city.arrivals, self.city.accidents)
         self.refresh()
 
     def refresh(self):
@@ -94,6 +101,13 @@ class MenuFrame(tk.Frame):
             command=self.city.add_times_multiple_agents)
         self.add_super_boost_button.pack(pady=5)
 
+        self.pie_chart = tk.Canvas(self, width=100, height=100)
+        xy = 10, 10, 100, 100
+        self.pie_chart.pack(pady=10)
+        self.accidents_portion = self.pie_chart.create_arc(xy, fill="red")
+        self.arrived_portion = self.pie_chart.create_arc(xy, fill="green")
+        self.remain_portion = self.pie_chart.create_arc(xy, fill="blue", start = 0, extent=359.9)
+
     def update_accidents_label(self):
         self.accident_label.config(
             text='Accidents: {}'.format(self.city.accidents))
@@ -107,6 +121,13 @@ class MenuFrame(tk.Frame):
 
     def update_cars_label(self, quantity):
         self.cars_label.config(text='Cars: {}'.format(quantity))
+
+    def update_pie_chart(self, cars, arrivals, accidents):
+        total = cars + arrivals + accidents
+        if total > 0:
+            self.pie_chart.itemconfig(self.accidents_portion, start=frac(0, total), extent=frac(accidents, total))
+            self.pie_chart.itemconfig(self.arrived_portion,start=frac(accidents, total), extent=frac(arrivals, total))
+            self.pie_chart.itemconfig(self.remain_portion,start=frac(accidents+arrivals, total), extent=frac(cars, total))
 
 
 class CityFrame(tk.Frame):
