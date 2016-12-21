@@ -60,7 +60,7 @@ class Road(object):
             if road.direction == Direction.WE:
                 block_number = self.number
                 return road.blocks[block_number] if block_number < len(
-                    self.blocks) else None
+                    road.blocks) else None
             else:
                 block_number = self.number - 1
                 return road.blocks[block_number] if block_number >= 0 else None
@@ -70,7 +70,7 @@ class Road(object):
             if road.direction == Direction.WE:
                 block_number = self.number
                 return road.blocks[block_number] if block_number < len(
-                    self.blocks) else None
+                    road.blocks) else None
             else:
                 block_number = self.number - 1
                 return road.blocks[block_number] if block_number >= 0 else None
@@ -80,7 +80,7 @@ class Road(object):
             if road.direction == Direction.NS:
                 block_number = self.number
                 return road.blocks[block_number] if block_number < len(
-                    self.blocks) else None
+                    road.blocks) else None
             else:
                 block_number = self.number - 1
                 return road.blocks[block_number] if block_number >= 0 else None
@@ -90,7 +90,7 @@ class Road(object):
             if road.direction == Direction.NS:
                 block_number = self.number
                 return road.blocks[block_number] if block_number < len(
-                    self.blocks) else None
+                    road.blocks) else None
             else:
                 block_number = self.number - 1
                 return road.blocks[block_number] if block_number >= 0 else None
@@ -111,7 +111,7 @@ class Road(object):
             if road.direction == Direction.EW:
                 block_number = self.number
                 return road.blocks[block_number] if block_number < len(
-                    self.blocks) else None
+                    road.blocks) else None
             else:
                 return None
 
@@ -120,7 +120,7 @@ class Road(object):
             if road.direction == Direction.SN:
                 block_number = self.number
                 return road.blocks[block_number] if block_number < len(
-                    self.blocks) else None
+                    road.blocks) else None
             else:
                 return None
 

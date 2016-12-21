@@ -49,7 +49,8 @@ class Agent(object):
 
 
 class NavigationManager(object):
-    def __init__(self, car, max_speed, acceleration, route):
+    def __init__(self, car, max_speed, acceleration, route, error,
+                 distance_acceptance):
         self.car = car
 
         self.max_speed = max_speed
@@ -62,6 +63,9 @@ class NavigationManager(object):
         self.crossing_car = False
 
         self.route = route
+
+        self.error = error
+        self.distance_acceptance = distance_acceptance
 
     def current_road(self):
         return self.route.blocks[self.route.index].road
@@ -197,7 +201,7 @@ class NavigationManager(object):
         if direction == Direction.EW:
             d = abs(self.x - block.from_n)
 
-        return d < constants.ERROR
+        return d < self.error
 
     def analyze_travel_end(self):
         if self.route.index == len(self.route.blocks) - 1:
@@ -217,10 +221,10 @@ class NavigationManager(object):
             self.car.city.delete_agent(self.car)
 
     def out_of_city(self):
-        return (self.x < -2 * constants.ERROR or
-                self.x > self.car.city.width + 2 * constants.ERROR or
-                self.y < -2 * constants.ERROR or
-                self.y > self.car.city.height + 2 * constants.ERROR)
+        return (self.x < -2 * self.error or
+                self.x > self.car.city.width + 2 * self.error or
+                self.y < -2 * self.error or
+                self.y > self.car.city.height + 2 * self.error)
 
     def has_arrived(self):
         if is_horizontal(self.route.blocks[-1].road.direction):
@@ -228,7 +232,7 @@ class NavigationManager(object):
         else:
             n = self.y
 
-        return abs(n - self.route.destiny.number) < constants.ERROR
+        return abs(n - self.route.destiny.number) < self.error
 
     def process_break(self, distance, other):
         if self.state == State.STOPPED or (other and
@@ -316,7 +320,7 @@ class NavigationManager(object):
 
     def before(self, other):
         d = self.get_distance(other)
-        if d > 0 and d < constants.DISTANCE_FOR_RESPONSE:
+        if d > 0 and d < self.distance_acceptance:
             return True
         return False
 
@@ -354,8 +358,9 @@ class NavigationManager(object):
 
 
 class CommunicationManager(object):
-    def __init__(self, car):
+    def __init__(self, car, distance_acceptance):
         self.car = car
+        self.distance_acceptance = distance_acceptance
 
     def process_answers(self):
         most_important_distance_msg = None
@@ -366,7 +371,7 @@ class CommunicationManager(object):
             ans = self.car.answers.pop()
 
             if ans.m_type == MessageType.DISTANCE:
-                if ans.msg[0] < constants.DISTANCE_ACCEPTANCE:
+                if ans.msg[0] < self.distance_acceptance:
                     if (not most_important_distance_msg
                         ) or ans.msg[0] < most_important_distance_msg.msg[0]:
                         most_important_distance_msg = ans
@@ -449,16 +454,18 @@ class CommunicationManager(object):
 class Car(Agent):
     counter = 0
 
-    def __init__(self, city, route, max_speed, acceleration):
+    def __init__(self, city, route, max_speed, acceleration, error,
+                 distance_acceptance):
         super(Car, self).__init__()
         self.id = Car.counter
         Car.counter += 1
 
         self.city = city
 
-        self.navigation_manager = NavigationManager(self, max_speed,
-                                                    acceleration, route)
-        self.communication_manager = CommunicationManager(self)
+        self.navigation_manager = NavigationManager(
+            self, max_speed, acceleration, route, error, distance_acceptance)
+        self.communication_manager = CommunicationManager(self,
+                                                          distance_acceptance)
 
         self.navigation_manager.init_position()
 

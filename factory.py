@@ -8,12 +8,15 @@ from agents import Car
 
 
 class CarFactory(object):
-    def __init__(self, city):
+    def __init__(self, city, params):
         self.city = city
+        self.params = params
+        self.error = 0.001 * max(params.width, params.height)
+        self.distance_acceptance = params.distance_acceptance
 
     def generate_random_agent(self):
-        length = random.randint(constants.MIN_TRAVEL_LENGTH,
-                                constants.MAX_TRAVEL_LENGTH)
+        length = random.randint(self.params.min_travel_length,
+                                self.params.max_travel_length)
 
         start = self.get_random_start()
 
@@ -30,19 +33,26 @@ class CarFactory(object):
 
         route = Route(route_list, start, end)
 
-        speed = random.uniform(constants.MIN_CRUISE_SPEED,
-                               constants.MAX_CRUISE_SPEED)
-        acc = random.uniform(constants.MIN_ACCEL_SPEED,
-                             constants.MAX_ACCEL_SPEED)
+        speed = random.uniform(self.params.min_cruise_speed,
+                               self.params.max_cruise_speed)
+        acc = random.uniform(self.params.min_accel_speed,
+                             self.params.max_accel_speed)
 
-        return Car(self.city, route, speed, acc)
+        return Car(self.city, route, speed, acc, self.error,
+                   self.distance_acceptance)
 
     def decide_next_block(self, block):
         n_block = block.road.get_next_block(block)
         t_block = block.road.get_next_turning_block(block)
         if not n_block:
+            if t_block is None:
+                import ipdb
+                ipdb.set_trace()
             return t_block
         if not t_block:
+            if n_block is None:
+                import ipdb
+                ipdb.set_trace()
             return n_block
         return random.choice([n_block, t_block])
 

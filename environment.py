@@ -3,8 +3,6 @@ from utils import Direction, is_horizontal, manhattan_distance
 from factory import CarFactory
 from components import Road, Route, Block
 
-import constants
-
 import random
 
 
@@ -45,21 +43,24 @@ class Environment(object):
 
 
 class City(Environment):
-    def __init__(self, name, height, width, horizontal_roads_count,
-                 vertical_roads_count):
+    def __init__(self, name, params):
         super().__init__()
         self.name = name
-        self.height = height
-        self.width = width
-        self.horizontal_roads_count = horizontal_roads_count
-        self.vertical_roads_count = vertical_roads_count
 
-        self.block_height_size = height / (self.vertical_roads_count - 1)
-        self.block_width_size = width / (self.horizontal_roads_count - 1)
+        self.params = params
+
+        self.height = params.height
+        self.width = params.width
+        self.horizontal_roads_count = params.horizontal_roads_count
+        self.vertical_roads_count = params.vertical_roads_count
+
+        self.block_height_size = self.height / (
+            self.horizontal_roads_count - 1)
+        self.block_width_size = self.width / (self.vertical_roads_count - 1)
 
         self.generate_roads()
 
-        self.car_factory = CarFactory(self)
+        self.car_factory = CarFactory(self, params)
 
         self.accidents = 0
         self.accidents_list = []
@@ -95,7 +96,7 @@ class City(Environment):
         self.arrivals += 1
 
     def get_max_speed(self):
-        return constants.MAX_CRUISE_SPEED
+        return self.params.max_cruise_speed
 
     def create_random_agent(self):
         return self.car_factory.generate_random_agent()
