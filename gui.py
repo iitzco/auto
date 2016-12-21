@@ -61,13 +61,16 @@ class MenuFrame(tk.Frame):
         tk.Frame.__init__(self, parent)
         self.city = city
 
+        self.custom_amount = tk.StringVar()
+        self.custom_amount.set('0')
+
         # To avoid movement of this frame. It's like a width parameter
         self.label = tk.Label(self, text='A' * 10, font=(None, 40), fg='white')
         self.label.pack(side=tk.TOP)
 
         self.init_stats_menu()
-        self.init_controls_menu()
         self.init_pie_chart()
+        self.init_controls_menu()
 
     def init_stats_menu(self):
         self.stats_label = tk.Label(self, text='Stats', font=(None, 40))
@@ -122,9 +125,33 @@ class MenuFrame(tk.Frame):
             command=self.city.add_times_multiple_agents)
         self.add_super_boost_button.pack(pady=5)
 
-    def init_pie_chart(self):
         container = tk.Frame(self, height=2)
         container.pack(pady=5)
+
+        tk.Entry(
+            container, textvariable=self.custom_amount).grid(
+                row=0, column=0)
+
+        self.add_custom_button = tk.Button(
+            container,
+            text='Add'.format(
+                int(self.city.vertical_roads_count +
+                    self.city.horizontal_roads_count) * 5),
+            command=self.add_custom_agents)
+        self.add_custom_button.grid(row=0, column=1)
+
+    def add_custom_agents(self):
+        try:
+            value = int(self.custom_amount.get())
+            if value > 0:
+                self.city.add_custom_agents(value)
+        except ValueError as e:
+            pass
+        self.custom_amount.set('0')
+
+    def init_pie_chart(self):
+        container = tk.Frame(self, height=2)
+        container.pack(pady=10)
 
         self.pie_chart = tk.Canvas(container, width=100, height=100)
         xy = 10, 10, 100, 100

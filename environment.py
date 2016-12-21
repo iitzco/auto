@@ -29,6 +29,11 @@ class Environment(object):
             agent = self.create_random_agent()
             self.processor.add_agent(agent)
 
+    def add_custom_agents(self, amount):
+        for i in range(amount):
+            agent = self.create_random_agent()
+            self.processor.add_agent(agent)
+
     def delete_agent(self, agent):
         self.processor.remove_agent(agent)
 
