@@ -146,7 +146,7 @@ class NavigationManager(object):
 
     def analyze_update(self):
         # Analyze also lost cars that missed a turn.
-        # This will drive through current road but 
+        # This will drive through current road but
         # in following blocks.
 
         road = self.current_road()
@@ -297,10 +297,10 @@ class NavigationManager(object):
             self.set_original_acc()
             self.state = State.ACCELERATING
 
-    def before(self, other):
+    def get_distance(self, other):
         if other.navigation_manager.current_road() != self.current_road():
-            d = distance(self.x, self.y, other.navigation_manager.x,
-                         other.navigation_manager.y)
+            d = abs(self.x - other.navigation_manager.x) + abs(
+                self.y - other.navigation_manager.y)
 
         else:
             if self.current_road().direction == Direction.WE:
@@ -312,13 +312,16 @@ class NavigationManager(object):
             if self.current_road().direction == Direction.SN:
                 d = -(self.y - other.navigation_manager.y)
 
+        return d
+
+    def before(self, other):
+        d = self.get_distance(other)
         if d > 0 and d < constants.DISTANCE_FOR_RESPONSE:
             return True
         return False
 
     def effective_distance(self, other):
-        return distance(self.x, self.y, other.navigation_manager.x,
-                        other.navigation_manager.y) - 2 * constants.CAR_RADIUS
+        return self.get_distance(other) - 2 * constants.CAR_RADIUS
 
     def passed_half_block(self):
         curr_road_direction = self.current_road().direction
@@ -436,7 +439,7 @@ class CommunicationManager(object):
                         Request(self.car, MessageType.DISTANCE))
 
         priority_block = block.road.get_priority_block(block)
-        if priority_block:
+        if priority_block and self.car.navigation_manager.passed_half_block():
             for each in priority_block.cars:
                 if not each == self.car:
                     each.requests.append(
