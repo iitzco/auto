@@ -6,6 +6,10 @@ import configparser
 import sys
 
 
+class NotEvenNumberException(Exception):
+    pass
+
+
 class Parameters(object):
     def __init__(self):
         pass
@@ -28,6 +32,9 @@ class Parameters(object):
         self.max_accel_speed = int(car_config['MAX_ACCEL_SPEED'])
         self.distance_acceptance = int(car_config['DISTANCE_ACCEPTANCE'])
 
+        if self.horizontal_roads_count % 2 == 1 or self.vertical_roads_count % 2 == 1:
+            raise NotEvenNumberException()
+
 
 if __name__ == '__main__':
 
@@ -45,11 +52,16 @@ if __name__ == '__main__':
     parameters = Parameters()
     try:
         parameters.load(config)
-    except Exception as e:
-        import ipdb
-        ipdb.set_trace()
+    except ValueError:
+        print("Error while parsing config file. Values must be integers.")
+        exit(1)
+    except KeyError:
         print(
-            "Error while parsing config file. Check correct format in example file."
+            "Error while parsing config file. Incorrect keys, check example.")
+        exit(1)
+    except NotEvenNumberException:
+        print(
+            "Error while parsing config file. Amount of roads must be even numbers."
         )
         exit(1)
 
