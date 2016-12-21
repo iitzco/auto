@@ -281,17 +281,17 @@ class NavigationManager(object):
         if self.arrived:
             should_stop = False
             if is_horizontal(self.current_road().direction):
-                if abs(self.speed_x) < 0.05 * self.max_speed:
+                if abs(self.speed_x) < 0.075 * self.max_speed:
                     should_stop = True
             else:
-                if abs(self.speed_y) < 0.05 * self.max_speed:
+                if abs(self.speed_y) < 0.075 * self.max_speed:
                     should_stop = True
 
             if should_stop:
                 self.speed_x, self.speed_y = 0, 0
                 self.state = State.STOPPED
 
-            return
+                return
 
         if self.state == State.STOPPED or self.state == State.BREAKING:
             self.set_original_acc()
