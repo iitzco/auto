@@ -295,7 +295,7 @@ class NavigationManager(object):
                 self.speed_x, self.speed_y = 0, 0
                 self.state = State.STOPPED
 
-                return
+            return
 
         if self.state == State.STOPPED or self.state == State.BREAKING:
             self.set_original_acc()
@@ -414,7 +414,7 @@ class CommunicationManager(object):
                 else:
                     req.requester.answers.append(
                         Response(MessageType.DISTANCE, [
-                            d * 0.8, self.car
+                            d * 0.5, self.car
                         ]))  # Aparent 80% less space for breaking
 
             if req.m_type == MessageType.INTERSECTION:
@@ -472,5 +472,5 @@ class Car(Agent):
     def process(self, delta_t):
         self.communication_manager.process_answers()
         self.communication_manager.process_requests()
-        self.communication_manager.make_requests()
         self.navigation_manager.process_location(delta_t)
+        self.communication_manager.make_requests()
