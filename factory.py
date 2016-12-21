@@ -64,10 +64,11 @@ class CarFactory(object):
             if random.random() > 0.5:
                 road = self.city.horizontal_roads[random.randint(
                     0, int(self.city.horizontal_roads_count) - 1)]
+                number = random.randint(0, int(self.city.width) - 1)
             else:
                 road = self.city.vertical_roads[random.randint(
                     0, int(self.city.vertical_roads_count) - 1)]
-            number = random.randint(0, int(self.city.width) - 1)
+                number = random.randint(0, int(self.city.height) - 1)
             block = road.get_block(number)
             if number > (block.from_n + constants.CAR_RADIUS) and number < (
                     block.to_n - constants.CAR_RADIUS):
